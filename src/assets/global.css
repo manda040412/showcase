@@ -47,5 +47,5 @@ button {
 * { cursor: default; }
 canvas { cursor: grab; }
 canvas:active { cursor: grabbing; }
-button, [role="button"] { cursor: pointer !important; }
+button, [role="button"] { cursor: pointer !important; touch-action: manipulation; }
 .hotspot { cursor: pointer !important; }

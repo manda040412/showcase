@@ -16,7 +16,7 @@ import { lang, toggleLang } from '../composables/useLang.js'
   top: calc(var(--topbar-h, 58px) / 2);
   transform: translateY(-50%);
   z-index: 10000;
-  height: 26px;
+  min-height: 44px;
   display: flex;
   align-items: stretch;
   border-radius: 5px;

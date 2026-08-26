@@ -418,7 +418,7 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
 
 <style scoped>
 .viewer {
-  position: absolute; inset: 0; overflow: hidden;
+  position: absolute; inset: 0; overflow: hidden; touch-action: none; user-select: none;
 }
 
 /* ── Photo background ── */
