@@ -850,4 +850,25 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   }
   .deg-arc, .deg-needle-group { transition: none !important; }
 }
+@media (max-width: 900px) {
+  .topbar { padding: 0 72px 0 14px; }
+  .topbar-left { gap: 9px; min-width: 0; }
+  .topbar-sub { display: none; }
+  .left-sidebar { left: 14px; top: 66px; width: min(252px, calc(100vw - 28px)); }
+  .right-sidebar { right: 14px; top: 66px; }
+  .bottom-hud { padding: 0 12px; }
+  .hud-center, .hud-left .hud-sep, .hud-left .hud-item:nth-child(2) { display: none; }
+}
+@media (max-width: 600px) {
+  .topbar { height: 54px; padding: 0 66px 0 10px; }
+  .trad-logo-bar { height: 26px; }
+  .topbar-brand { font-size: 11px; }
+  .topbar-right { gap: 4px; }
+  .tab, .btn-back { min-height: 40px; padding: 6px 8px; font-size: 8px; letter-spacing: .05em; }
+  .left-sidebar, .right-sidebar { display: none; }
+  .parts-hotspot { transform: translate(-50%, -50%); padding: 12px; }
+  .parts-label { padding: 8px 10px; }
+  .bottom-hud { height: 40px; padding: 0 10px; }
+  .hud-item { font-size: 8px; }
+}
 </style>

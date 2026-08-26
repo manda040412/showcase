@@ -784,4 +784,23 @@ function speedLineStyle(i) {
   .topbar { padding: 0 20px; }
   .topbar-subtitle { display: none; }
 }
+@media (max-width: 600px) {
+  .topbar { height: 58px; padding: 0 64px 0 12px; }
+  .topbar-left { min-width: 0; }
+  .topbar-text-group, .topbar-stat, .topbar-div { display: none; }
+  .content { padding: 0 18px; }
+  .trad-logo-hero { width: min(220px, 58vw); height: auto; }
+  .headline .line-1, .headline .line-2 { font-size: clamp(48px, 16vw, 88px); }
+  .subtext { max-width: 300px; font-size: 10px; text-align: center; line-height: 1.5; }
+  .pills { max-width: 320px; }
+  .pill { padding: 6px 10px; font-size: 9px; }
+  .cta-orbit { width: 136px; height: 136px; }
+  .cta-btn { width: 84px; height: 84px; }
+  .cta-hint { font-size: 8px; text-align: center; }
+  .side-panel { display: none; }
+  .bottombar { height: 48px; padding: 0 12px; }
+  .bottom-logo { height: 23px; }
+  .bottom-company { font-size: 8px; }
+  .bottom-tagline { display: none; }
+}
 </style>
