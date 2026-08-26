@@ -465,6 +465,8 @@ const BASE_SCALE   = 0.85
 let isPanning = false
 let lastPanX  = 0
 let lastPanY  = 0
+const activePointers = new Map()
+let lastPinchDistance = 0
 
 // Custom cursor
 let ringX = 0, ringY = 0, dotX = 0, dotY = 0
@@ -1417,7 +1419,13 @@ function onWheel(e) {
 }
 
 function onPointerDown(e) {
-  if (e.button !== 0 || e.target.closest('button, .hotspot, [role="button"]')) return
+  if ((e.pointerType === 'mouse' && e.button !== 0) || e.target.closest('button, .hotspot, [role="button"]')) return
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+  if (activePointers.size === 2) {
+    lastPinchDistance = getPointerDistance()
+    isPanning = false
+    return
+  }
   isPanning = true
   lastPanX = e.clientX
   lastPanY = e.clientY
@@ -1425,6 +1433,13 @@ function onPointerDown(e) {
   if (cursorRing.value) cursorRing.value.classList.add('grabbing')
 }
 function onPointerMove(e) {
+  if (activePointers.has(e.pointerId)) activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+  if (activePointers.size >= 2) {
+    const distance = getPointerDistance()
+    if (lastPinchDistance > 0) scale.value = Math.max(SCALE_MIN, Math.min(SCALE_MAX, scale.value * distance / lastPinchDistance))
+    lastPinchDistance = distance
+    return
+  }
   if (!isPanning) return
   panX.value += e.clientX - lastPanX
   panY.value += e.clientY - lastPanY
@@ -1432,9 +1447,22 @@ function onPointerMove(e) {
   lastPanY = e.clientY
 }
 function onPointerUp(e) {
-  isPanning = false
+  activePointers.delete(e.pointerId)
+  if (activePointers.size === 1) {
+    const remaining = activePointers.values().next().value
+    lastPanX = remaining.x
+    lastPanY = remaining.y
+    isPanning = true
+  } else {
+    isPanning = false
+  }
+  lastPinchDistance = 0
   if (e?.currentTarget?.hasPointerCapture?.(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
   if (cursorRing.value) cursorRing.value.classList.remove('grabbing')
+}
+function getPointerDistance() {
+  const pointers = [...activePointers.values()]
+  return Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y)
 }
 function onImgLoad()     {}
 
