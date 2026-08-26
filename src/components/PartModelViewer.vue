@@ -18,6 +18,8 @@ const props = defineProps({
   tintColor: { type: String, default: null },  
   metalness: { type: Number, default: null },
   roughness: { type: Number, default: null },
+  baseRotationX: { type: Number, default: 0 },
+  cameraZoom: { type: Number, default: 1 },
 })
 const emit = defineEmits(['error', 'loaded'])
 
@@ -30,8 +32,8 @@ let isDragging = false, lastX = 0, lastY = 0
 let rotX = 0.12, rotY = 0.5
 let velX = 0, velY = 0
 
-let distance = 3.1
-const DEFAULT_DISTANCE   = 3.1
+let distance = 2.0
+const DEFAULT_DISTANCE   = 2.0
 const ZOOM_MAX_DISTANCE  = 6
 const FALLBACK_MIN_DIST  = 1.6   // dipakai sebelum model pertama selesai load
 let safeMinDistance = FALLBACK_MIN_DIST
@@ -170,7 +172,7 @@ function loadModel(src) {
       const sphere = box.getBoundingSphere(new THREE.Sphere())
       const sphereRadius = sphere.radius || 0.7
 
-      const TARGET_RADIUS = 0.7 // target radius model setelah discale (setengah dari lebar acuan 1.4)
+      const TARGET_RADIUS = 1.2 // framing lebih dekat agar produk tampil dominan
       const scaleFactor = TARGET_RADIUS / sphereRadius
 
       model.scale.setScalar(scaleFactor)
@@ -201,7 +203,8 @@ function loadModel(src) {
       console.log('[PartModelViewer] cylinder radius / halfHeight (scaled):', cylinderRadius.toFixed(3), halfHeight.toFixed(3))
       console.log('[PartModelViewer] safeMinDistance:', safeMinDistance.toFixed(3))
 
-      distance = Math.max(safeMinDistance, Math.min(DEFAULT_DISTANCE, ZOOM_MAX_DISTANCE))
+      const zoom = Math.max(0.5, Math.min(1, props.cameraZoom))
+      distance = Math.max(safeMinDistance * zoom, Math.min(DEFAULT_DISTANCE * zoom, ZOOM_MAX_DISTANCE))
       // ═════════════════════════════════════════════════════════════════════
 
       if (FORCE_DEBUG_MATERIAL) {
@@ -250,7 +253,10 @@ function animate() {
   velX *= 0.9; velY *= 0.9
   rotX = Math.max(-0.6, Math.min(0.6, rotX))
 
-  if (model) { model.rotation.y = rotY; model.rotation.x = rotX * 0.4 }
+  if (model) {
+    model.rotation.y = rotY
+    model.rotation.x = props.baseRotationX + rotX * 0.4
+  }
 
   camera.position.set(Math.sin(rotY * 0.001) * 0, 0.5, distance) // static-ish cam, model itself yang rotate
   camera.lookAt(0, 0, 0)

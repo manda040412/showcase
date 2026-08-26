@@ -27,12 +27,6 @@ export function toggleLang() {
   setLang(lang.value === 'id' ? 'en' : 'id')
 }
 
-// ─────────────────────────────────────────────────────────────
-// Dictionary
-// NOTE: spare-part names, brand names, and the company name are
-// intentionally NOT in this dictionary — they always stay in
-// English / as-is, per product requirement.
-// ─────────────────────────────────────────────────────────────
 const dict = {
   id: {
     // global

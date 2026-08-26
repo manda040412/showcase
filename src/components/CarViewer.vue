@@ -148,18 +148,20 @@
 
     <!-- Parts Detail Hotspot -->
     <Transition name="pop-in">
-      <div
+      <button
         v-if="bootStage >= 3 && dotVisible"
+        type="button"
         class="parts-hotspot"
         :style="{ left: dotX + 'px', top: dotY + 'px' }"
         @click="handleChassisClick"
       >
-        <svg class="parts-arrow" viewBox="0 0 56 20" fill="none">
-          <line x1="54" y1="10" x2="14" y2="10" stroke="#0066E6" stroke-width="1.4" stroke-dasharray="4 3"/>
-          <polyline points="20,3 5,10 20,17" stroke="#0066E6" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div class="parts-label">{{ t('parts_detail') }}</div>
-      </div>
+        <span class="parts-target" aria-hidden="true"><span class="parts-target-core"></span></span>
+        <span class="parts-connector" aria-hidden="true"></span>
+        <span class="parts-label">
+          <span class="parts-index">01</span>
+          <span class="parts-label-text">{{ t('parts_detail') }}</span>
+        </span>
+      </button>
     </Transition>
 
     <!-- Bottom HUD -->
@@ -767,19 +769,51 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
 
 /* ── Parts hotspot ── */
 .parts-hotspot {
-  position: absolute; transform: translate(0, -50%);
+  position: absolute; transform: translate(0, -50%); padding: 10px 0;
   display: flex; flex-direction: row; align-items: center;
-  cursor: pointer; z-index: 20;
+  border: 0; background: transparent; cursor: pointer; z-index: 20;
 }
-.parts-arrow { width: 56px; height: 20px; flex-shrink: 0; }
+.parts-target {
+  position: relative; width: 24px; height: 24px; flex-shrink: 0;
+  border: 1px solid rgba(88,174,255,.75); border-radius: 50%;
+  background: rgba(4,12,26,.38); box-shadow: 0 0 12px rgba(0,130,255,.35);
+}
+.parts-target::before, .parts-target::after {
+  content: ''; position: absolute; background: #58AEFF; opacity: .75;
+}
+.parts-target::before { width: 6px; height: 1px; top: 11px; left: -4px; }
+.parts-target::after { width: 1px; height: 6px; top: -4px; left: 11px; }
+.parts-target-core {
+  position: absolute; width: 5px; height: 5px; top: 8px; left: 8px;
+  border-radius: 50%; background: #00C2FF; box-shadow: 0 0 10px #00C2FF;
+}
+.parts-connector {
+  width: 38px; height: 1px; flex-shrink: 0;
+  background: linear-gradient(90deg, #58AEFF, rgba(88,174,255,.18));
+  position: relative;
+}
+.parts-connector::after {
+  content: ''; position: absolute; right: 0; top: -2px; width: 5px; height: 5px;
+  border-radius: 50%; background: #58AEFF; box-shadow: 0 0 7px rgba(88,174,255,.8);
+}
 .parts-label {
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; color: #F2F6FF;
-  background: rgba(8,14,26,0.85);
-  backdrop-filter: blur(10px);
-  padding: 6px 13px; border-radius: 4px; border: 1px solid rgba(80,160,255,0.3);
-  white-space: nowrap; box-shadow: 0 2px 16px rgba(0,0,0,0.4); transition: all .2s;
+  position: relative; display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-mono); white-space: nowrap; color: #EAF3FF;
+  background: rgba(5,12,25,.42); backdrop-filter: blur(8px);
+  padding: 7px 12px 7px 9px; border: 1px solid rgba(80,160,255,.3);
+  border-radius: 3px; box-shadow: 0 3px 14px rgba(0,0,0,.24);
+  transition: color .2s, background .2s, border-color .2s, box-shadow .2s, transform .2s;
 }
-.parts-hotspot:hover .parts-label { background: #0066E6; color: white; box-shadow: 0 0 16px rgba(0,102,230,0.5); }
+.parts-index { font-size: 8px; letter-spacing: .12em; color: #00C2FF; }
+.parts-label-text { font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+.parts-hotspot:hover .parts-label,
+.parts-hotspot:focus-visible .parts-label {
+  background: rgba(0,102,230,.72); border-color: #58AEFF; color: white;
+  box-shadow: 0 0 18px rgba(0,145,255,.4);
+  transform: translateX(3px);
+}
+.parts-hotspot:hover .parts-target { box-shadow: 0 0 0 5px rgba(0,194,255,.1), 0 0 18px rgba(0,194,255,.8); }
+.parts-hotspot:focus-visible { outline: 1px solid #58AEFF; outline-offset: 5px; }
 
 /* ── Bottom HUD ── */
 .bottom-hud {

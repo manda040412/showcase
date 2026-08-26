@@ -238,6 +238,8 @@
                         :key="currentVariant.model"
                         :src="currentVariant.model"
                         :tint-color="currentVariant.modelColor"
+                        :base-rotation-x="currentVariant.baseRotationX || 0"
+                        :camera-zoom="currentVariant.cameraZoom || 1"
                         class="rd-stage-img rd-stage-model"
                         @error="onModelError(currentVariant.model)"
                       />
@@ -384,6 +386,7 @@
                     :src="currentVideoUrl"
                     :title="(currentVariant?.brand || 'TRAD') + ' Company Profile'"
                     frameborder="0"
+                    referrerpolicy="strict-origin-when-cross-origin"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowfullscreen
                   ></iframe>
@@ -1169,7 +1172,7 @@ const hotspots = [
     x: 20, y: 89, label: 'Disc Rotor', labelDir: 'right', icon: '⭕',
     brandVariants: [
       { brand: 'Compact Brakes', brandLogo: '/images/brands/compact-brakes.png', image: '/images/parts/disc_rotor.png',
-        model: '/models/disk_rotor.glb',
+        model: '/models/disk_rotor.glb', baseRotationX: Math.PI / 2,
         desc: {
           en: 'The ventilated disc rotor absorbs and dissipates heat generated during braking. Compact Brakes rotors use Y Groove Technology to channel away dust, water, and heat for improved cooling.',
           id: 'Disc rotor berventilasi menyerap dan melepaskan panas yang dihasilkan saat pengereman. Rotor Compact Brakes menggunakan Y Groove Technology untuk menyalurkan debu, air, dan panas demi pendinginan yang lebih baik.',
@@ -1200,7 +1203,7 @@ const hotspots = [
   {
     x: 33, y: 82, label: 'Rack Steering Assy', labelDir: 'right', icon: '🎯',
     brandVariants: [
-      { brand: 'NOK', brandLogo: '/images/brands/nok.png', image: '/images/parts/rack_steering.png', model: '/models/rack_steering_assy.glb',
+      { brand: 'NOK', brandLogo: '/images/brands/nok.png', image: '/images/parts/rack_steering.png', model: '/models/rack_steering_assy.glb', cameraZoom: 0.68,
         desc: {
           en: 'NOK rack seals and power steering fluid seals resist hydraulic pressure and thermal cycling, enabling a cost-effective rack rebuild as an alternative to full assembly replacement.',
           id: 'Rack seal dan power steering fluid seal NOK tahan tekanan hidrolik dan siklus termal, memungkinkan rebuild rack yang hemat biaya sebagai alternatif penggantian rakitan penuh.',
@@ -1300,7 +1303,7 @@ const hotspots = [
     x: 93, y: 42, label: 'Brake Pad / Disc Rotor', labelDir: 'left', icon: '🔴',
     brandVariants: [
       { brand: 'Compact Brakes', brandLogo: '/images/brands/compact-brakes.png', image: '/images/parts/disc_rotor.png',
-        model: '/models/disk_rotor.glb',
+        model: '/models/disk_rotor.glb', baseRotationX: Math.PI / 2,
         desc: {
           en: 'The rear-right brake pad and disc rotor work together with ABS for optimal front-to-rear brake distribution. Compact Brakes rotors use Y Groove Technology for improved cooling.',
           id: 'Brake pad dan disc rotor belakang-kanan bekerja sama dengan ABS untuk distribusi pengereman depan-belakang yang optimal. Rotor Compact Brakes menggunakan Y Groove Technology untuk pendinginan yang lebih baik.',
@@ -1340,7 +1343,9 @@ const BRAND_VIDEOS = {
 const currentVideoConfig = computed(() => BRAND_VIDEOS[currentVariant.value?.brand] || DEFAULT_VIDEO)
 const currentVideoUrl = computed(() => {
   const v = currentVideoConfig.value
-  return v.type === 'youtube' ? `https://www.youtube.com/embed/${v.id}?autoplay=1` : ''
+  return v.type === 'youtube'
+    ? `https://www.youtube.com/embed/${v.id}?autoplay=1&origin=${encodeURIComponent(window.location.origin)}`
+    : ''
 })
 
 const currentVideoKey = computed(() => {
