@@ -2237,15 +2237,18 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     .rd-adv-col { gap: 4px; }
   }
   @media (min-width: 861px) and (max-height: 800px) {
-    .rd-main { display: grid; grid-template-columns: minmax(220px, 27%) minmax(0, 1fr) 31%; gap: 14px; padding-right: 0; align-items: start; }
+    .rd-layout { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto auto; overflow-y: auto; }
+    .rd-main { display: grid; grid-template-columns: minmax(220px, 27%) minmax(0, 1fr) 31%; gap: 14px; padding-right: 0; align-items: stretch; }
     .rd-specs { width: auto; max-height: 100%; overflow-y: auto; }
-    .rd-stage { min-width: 0; }
+    .rd-stage { min-width: 0; min-height: 0; justify-content: flex-start; overflow: hidden; }
     .rd-profile { position: static; width: auto; max-height: 100%; overflow-y: auto; }
     .rd-features-row { flex-wrap: nowrap; gap: 3px; }
     .rd-feature { width: auto; flex: 1 1 0; min-width: 0; }
     .rd-feature-label { font-size: 8px; }
     .rd-feature .rd-icon-slot--lg { width: 42px; height: 42px; border-radius: 12px; }
     .rd-feature-connector { display: none; }
+    .rd-stage-visual { flex: 1 1 auto; width: 100%; height: auto; min-height: 150px; max-height: 100%; aspect-ratio: auto; }
+    .rd-advantages { max-height: 116px; overflow-y: auto; }
   }
   @media (prefers-reduced-motion: reduce) {
     .bg-scan, .hs-pulse, .speed-line, .bg-radial, .img-halo, .cursor-svg,
