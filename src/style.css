@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --blue: #0077FF;
+  --blue-bright: #3399FF;
+  --blue-glow: rgba(0, 119, 255, 0.4);
+  --blue-dim: rgba(0, 119, 255, 0.15);
+  --white: #FFFFFF;
+  --gray-100: #F5F6F8;
+  --gray-200: #E8EAED;
+  --gray-300: #C8CDD5;
+  --gray-500: #8892A0;
+  --gray-700: #3D4450;
+  --gray-900: #0F1117;
+  --bg: #F0F2F5;
+  --surface: rgba(255,255,255,0.85);
+  --font-display: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'Inter', sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: var(--font-body);
+  color: var(--gray-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
