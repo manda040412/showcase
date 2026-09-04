@@ -1,10 +1,4 @@
 import { ref } from 'vue'
-
-// ─────────────────────────────────────────────────────────────
-// Global, app-wide language state (singleton — shared by every
-// component that imports this file).
-// 'id' = Bahasa Indonesia (default), 'en' = English
-// ─────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'trad-lang'
 
 function getInitialLang() {
@@ -29,10 +23,8 @@ export function toggleLang() {
 
 const dict = {
   id: {
-    // global
     lang_switch_to: 'EN',
 
-    // StandbyScreen
     digital_showcase: 'PAMERAN DIGITAL',
     live_demo: 'DEMO LANGSUNG',
     spare_parts_distributor: 'DISTRIBUTOR SPARE PART',
@@ -51,7 +43,6 @@ const dict = {
     bottom_tagline: 'DISTRIBUTOR SPARE PART ASLI TOYOTA',
     bottom_location: 'JAKARTA, INDONESIA',
 
-    // CarViewer
     loading_model: 'MEMUAT MODEL 3D',
     exterior_360: 'EKSTERIOR — 360°',
     tab_exterior: 'EKSTERIOR',
@@ -76,7 +67,6 @@ const dict = {
     hud_center: '⊙ Geser untuk memutar · Scroll untuk zoom · Klik DETAIL PART untuk rincian',
     yaw: 'YAW',
 
-    // ChassisViewer — topbar / chrome
     chassis_view: 'CHASSIS·VIEW',
     parts_count_suffix: 'PARTS',
     zoom_prefix: 'ZOOM·',

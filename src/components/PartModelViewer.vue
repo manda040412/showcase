@@ -35,7 +35,7 @@ let velX = 0, velY = 0
 let distance = 2.0
 const DEFAULT_DISTANCE   = 2.0
 const ZOOM_MAX_DISTANCE  = 6
-const FALLBACK_MIN_DIST  = 1.6   // dipakai sebelum model pertama selesai load
+const FALLBACK_MIN_DIST  = 1.6
 let safeMinDistance = FALLBACK_MIN_DIST
 
 function init() {
@@ -59,28 +59,22 @@ function init() {
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.85))
 
-  // Key light — sumber cahaya utama dari depan-atas
   const key = new THREE.DirectionalLight(0xffffff, 2.4)
   key.position.set(3, 4, 4)
   scene.add(key)
 
-  // Rim light kanan — aksen biru khas HUD
   const rim = new THREE.DirectionalLight(0x4fa8ff, 1.3)
   rim.position.set(-4, 2, -3)
   scene.add(rim)
 
-  // Rim light kiri — supaya sisi yang tidak kena "rim" kanan tidak gelap total
   const rim2 = new THREE.DirectionalLight(0x6fc0ff, 1.0)
   rim2.position.set(4, 1.5, -2)
   scene.add(rim2)
 
-  // Fill light dari bawah — mengisi bayangan di sisi bawah part
   const fill = new THREE.DirectionalLight(0x88c4ff, 0.9)
   fill.position.set(0, -3, 3)
   scene.add(fill)
 
-  // Fill light kedua dari depan-bawah — supaya bagian depan part gelap
-  // (mis. brake pad, bushing) tetap kontras dari sudut pandang kamera
   const fill2 = new THREE.DirectionalLight(0xffffff, 0.6)
   fill2.position.set(0, 0, 5)
   scene.add(fill2)
@@ -93,16 +87,16 @@ function init() {
 }
 
 const MATERIAL_PROFILES = [
-  { match: /disk_rotor|disc_rotor|rotor/i, color: '#7d8085', metalness: 0.7,  roughness: 0.4  }, // besi cor, abu sedang
-  { match: /wheel_bearing|bearing/i,       color: '#d3d7dc', metalness: 0.8,  roughness: 0.25 }, // metalik terang
-  { match: /brake_pad/i,                   color: '#63656a', metalness: 0.2,  roughness: 0.62 }, // friction material, abu gelap tapi kebaca
-  { match: /shock_absorber/i,              color: '#565a60', metalness: 0.5,  roughness: 0.35 }, // tabung gunmetal, tidak sehitam sebelumnya
-  { match: /bushing/i,                     color: '#5c5f64', metalness: 0.05, roughness: 0.78 }, // karet — matte, abu terang biar kebaca
-  { match: /link_stabilizer/i,             color: '#8f9297', metalness: 0.7,  roughness: 0.35 }, // baja abu terang
-  { match: /lower_arm/i,                   color: '#83868b', metalness: 0.65, roughness: 0.4  }, // forged steel abu sedang
-  { match: /upper_arm/i,                   color: '#8a8d92', metalness: 0.65, roughness: 0.4  }, // forged steel abu sedang-terang
-  { match: /tie_rod/i,                     color: '#9ea1a6', metalness: 0.7,  roughness: 0.32 }, // steel abu terang
-  { match: /rack_steering_assy/i,          color: '#aeb2b7', metalness: 0.6,  roughness: 0.35 }, // aluminium housing
+  { match: /disk_rotor|disc_rotor|rotor/i, color: '#7d8085', metalness: 0.7,  roughness: 0.4  },
+  { match: /wheel_bearing|bearing/i,       color: '#d3d7dc', metalness: 0.8,  roughness: 0.25 },
+  { match: /brake_pad/i,                   color: '#63656a', metalness: 0.2,  roughness: 0.62 },
+  { match: /shock_absorber/i,              color: '#565a60', metalness: 0.5,  roughness: 0.35 },
+  { match: /bushing/i,                     color: '#5c5f64', metalness: 0.05, roughness: 0.78 },
+  { match: /link_stabilizer/i,             color: '#8f9297', metalness: 0.7,  roughness: 0.35 },
+  { match: /lower_arm/i,                   color: '#83868b', metalness: 0.65, roughness: 0.4  },
+  { match: /upper_arm/i,                   color: '#8a8d92', metalness: 0.65, roughness: 0.4  },
+  { match: /tie_rod/i,                     color: '#9ea1a6', metalness: 0.7,  roughness: 0.32 },
+  { match: /rack_steering_assy/i,          color: '#aeb2b7', metalness: 0.6,  roughness: 0.35 },
 ]
 const DEFAULT_PROFILE = { color: '#93969b', metalness: 0.5, roughness: 0.45 }
 
@@ -115,7 +109,6 @@ function resolveMaterial(src) {
   }
 }
 
-// ── Terapkan warna + metalness + roughness ke semua mesh di model ──
 function applyTint(root, src) {
   const { color, metalness, roughness } = resolveMaterial(src)
   root.traverse((child) => {
@@ -126,7 +119,7 @@ function applyTint(root, src) {
           color: new THREE.Color(color),
           metalness,
           roughness,
-          map: old?.map || null,        // pertahankan texture kalau ada
+          map: old?.map || null,
           normalMap: old?.normalMap || null,
         })
         old?.dispose?.()
@@ -137,7 +130,6 @@ function applyTint(root, src) {
   })
 }
 
-// Debug switch — set true kalau mau tes visibility geometry pakai material basic merah
 const FORCE_DEBUG_MATERIAL = false
 function forceDebugMaterial(root) {
   root.traverse((child) => {
@@ -156,7 +148,6 @@ function loadModel(src) {
       if (model) { scene.remove(model); disposeModel(model) }
       model = gltf.scene
 
-      // ── DEBUG LOG (boleh dihapus kalau sudah nggak dibutuhkan) ──
       console.log('[PartModelViewer] ✅ loaded:', src)
       let meshCount = 0
       model.traverse((child) => { if (child.isMesh) meshCount++ })
@@ -172,7 +163,7 @@ function loadModel(src) {
       const sphere = box.getBoundingSphere(new THREE.Sphere())
       const sphereRadius = sphere.radius || 0.7
 
-      const TARGET_RADIUS = 1.2 // framing lebih dekat agar produk tampil dominan
+      const TARGET_RADIUS = 1.2
       const scaleFactor = TARGET_RADIUS / sphereRadius
 
       model.scale.setScalar(scaleFactor)
@@ -205,7 +196,6 @@ function loadModel(src) {
 
       const zoom = Math.max(0.5, Math.min(1, props.cameraZoom))
       distance = Math.max(safeMinDistance * zoom, Math.min(DEFAULT_DISTANCE * zoom, ZOOM_MAX_DISTANCE))
-      // ═════════════════════════════════════════════════════════════════════
 
       if (FORCE_DEBUG_MATERIAL) {
         forceDebugMaterial(model)
@@ -222,7 +212,7 @@ function loadModel(src) {
     (err) => {
       console.error('[PartModelViewer] ❌ Gagal load model:', src, err)
       loading.value = false
-      emit('error')          // <-- kasih tau parent supaya bisa fallback ke image
+      emit('error')
     }
   )
 }
@@ -258,12 +248,11 @@ function animate() {
     model.rotation.x = props.baseRotationX + rotX * 0.4
   }
 
-  camera.position.set(Math.sin(rotY * 0.001) * 0, 0.5, distance) // static-ish cam, model itself yang rotate
+  camera.position.set(Math.sin(rotY * 0.001) * 0, 0.5, distance)
   camera.lookAt(0, 0, 0)
   renderer.render(scene, camera)
 }
 
-// ── Interaksi: drag untuk rotate, wheel/pinch untuk zoom ──
 function onPointerDown(e) { isDragging = true; lastX = e.clientX; lastY = e.clientY }
 function onPointerMove(e) {
   if (!isDragging) return
@@ -274,17 +263,13 @@ function onPointerMove(e) {
 function onPointerUp() { isDragging = false }
 function onWheel(e) {
   e.preventDefault()
-  // Clamp bawah pakai safeMinDistance dinamis (per model), bukan konstanta 1.6,
-  // supaya part apa pun bentuknya tidak pernah kepotong walau di-zoom mentok.
   distance = Math.max(safeMinDistance, Math.min(ZOOM_MAX_DISTANCE, distance + e.deltaY * 0.0025))
 }
 
-// ── Kalau src berubah (ganti brand/part), load ulang model ──
 watch(() => props.src, (newSrc) => {
   if (renderer && newSrc) loadModel(newSrc)
 })
 
-// ── Kalau tintColor/metalness/roughness berubah tanpa ganti model, re-apply ──
 watch(() => [props.tintColor, props.metalness, props.roughness], () => {
   if (model && !FORCE_DEBUG_MATERIAL) applyTint(model, props.src)
 })

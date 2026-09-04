@@ -2,7 +2,6 @@
   <div class="viewer" ref="viewerEl">
     <canvas ref="canvasRef" class="three-canvas"></canvas>
 
-    <!-- Loading -->
     <Transition name="fade">
       <div v-if="!isReady" class="loading-overlay">
         <div class="loading-inner">
@@ -16,7 +15,6 @@
       </div>
     </Transition>
 
-    <!-- Top bar -->
     <div class="topbar" :class="{ visible: isReady }">
       <div class="topbar-left">
         <span class="topbar-brand">CAR <span class="blue">360°</span></span>
@@ -30,7 +28,6 @@
       </div>
     </div>
 
-    <!-- Spec card -->
     <Transition name="slide-left">
       <div v-if="isReady" class="spec-card">
         <p class="spec-title">SPESIFIKASI</p>
@@ -42,7 +39,6 @@
       </div>
     </Transition>
 
-    <!-- Hotspot -->
     <Transition name="pop-in">
       <div
         v-if="isReady"
@@ -56,7 +52,6 @@
       </div>
     </Transition>
 
-    <!-- Degree ring -->
     <Transition name="fade">
       <div v-if="isReady" class="deg-ring">
         <svg viewBox="0 0 80 80" class="deg-svg">
@@ -74,7 +69,6 @@
       </div>
     </Transition>
 
-    <!-- Status bar -->
     <div class="statusbar" :class="{ visible: isReady }">
       <span class="status-item">STATUS <span class="blue">READY</span></span>
       <span class="status-center">⊙ Model siap — drag putar · scroll zoom</span>
@@ -110,7 +104,6 @@ const specs = [
   { label: 'Suspensi',  value: 'Multi-link' },
 ]
 
-// Three.js internals
 let renderer, scene, camera, animId
 let car = null
 let isDragging = false, lastX = 0, prevX = 0
@@ -120,15 +113,12 @@ const CAM_Z_MIN = 3.0, CAM_Z_MAX = 10.0
 const CAM_Y    = 1.5
 const CAM_LOOK = new THREE.Vector3(0, 0.6, 0)
 
-// Entry
 let entryActive = false, entryT = 0
 const ENTRY_X_START = 14
 const ENTRY_DURATION = 1.6
 
-// Hotspot in local car space
 let hotspotLocal = new THREE.Vector3()
 
-// ─── Init ────────────────────────────────────────────────────
 function init() {
   const W = window.innerWidth, H = window.innerHeight
 
@@ -155,12 +145,10 @@ function init() {
   animate()
 }
 
-// ─── Lights ──────────────────────────────────────────────────
 function buildLights() {
   const pmrem = new THREE.PMREMGenerator(renderer)
   pmrem.compileEquirectangularShader()
 
-  // Studio environment box — bright panels
   const envScene = new THREE.Scene()
   const panelGeo = new THREE.PlaneGeometry(20, 20)
   const panelMat = (intensity) => new THREE.MeshBasicMaterial({
@@ -197,10 +185,8 @@ function buildLights() {
   scene.environmentIntensity = 1.6
   pmrem.dispose()
 
-  // Ambient
   scene.add(new THREE.AmbientLight(0xffffff, 1.0))
 
-  // Key light — depan kanan atas
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.5)
   keyLight.position.set(4, 4, 5)
   keyLight.castShadow = true
@@ -213,20 +199,16 @@ function buildLights() {
   keyLight.shadow.camera.bottom = -5
   scene.add(keyLight)
 
-  // Fill light — depan kiri
   const fillLight = new THREE.DirectionalLight(0xffffff, 1.2)
   fillLight.position.set(-4, 2, 5)
   scene.add(fillLight)
 
-  // Rim light — belakang
   const rimLight = new THREE.DirectionalLight(0xddeeff, 0.6)
   rimLight.position.set(0, 3, -6)
   scene.add(rimLight)
 }
 
-// ─── Ground ──────────────────────────────────────────────────
 function buildGround() {
-  // Hanya shadow catcher — tanpa ring
   const shadowPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 20),
     new THREE.ShadowMaterial({ opacity: 0.15 })
@@ -237,7 +219,6 @@ function buildGround() {
   scene.add(shadowPlane)
 }
 
-// ─── Load GLB ────────────────────────────────────────────────
 function loadModel() {
   let loadTimer = setInterval(() => {
     if (loadPct.value < 85) loadPct.value += 10 + Math.floor(Math.random() * 8)
@@ -253,7 +234,6 @@ function loadModel() {
 
       const model = gltf.scene
 
-      // 1. Scale — fit ke 4 unit
       const box0   = new THREE.Box3().setFromObject(model)
       const size0  = box0.getSize(new THREE.Vector3())
       const maxDim = Math.max(size0.x, size0.y, size0.z)
@@ -261,7 +241,6 @@ function loadModel() {
       model.scale.setScalar(scale)
       model.updateMatrixWorld(true)
 
-      // 2. Center XZ, sit on ground Y=0
       const box1   = new THREE.Box3().setFromObject(model)
       const center = box1.getCenter(new THREE.Vector3())
       model.position.x -= center.x
@@ -269,11 +248,9 @@ function loadModel() {
       model.position.y -= box1.min.y
       model.updateMatrixWorld(true)
 
-      // 3. Wrap in group
       car = new THREE.Group()
       car.add(model)
 
-      // 4. Material override
       model.traverse(n => {
         if (!n.isMesh) return
         n.castShadow    = true
@@ -285,8 +262,6 @@ function loadModel() {
           if (!m) return
           const mn = (m.name || '').toLowerCase()
 
-          // Body paint — TIDAK di-override warna, biarkan warna asli GLB
-          // Hanya boost refleksi
           if (
             mn === 'carpaint_color' ||
             mn.includes('carpaint') ||
@@ -300,7 +275,6 @@ function loadModel() {
             return
           }
 
-          // Kaca — buat transparan/semi-transparan
           if (
             mn.includes('glass') ||
             mn.includes('window') ||
@@ -317,12 +291,11 @@ function loadModel() {
             m.metalness       = 0.05
             m.envMapIntensity = 1.8
             m.depthWrite      = false
-            m.color.setRGB(0.7, 0.85, 1.0)  // tint biru muda
+            m.color.setRGB(0.7, 0.85, 1.0)
             m.needsUpdate     = true
             return
           }
 
-          // Plastic/tyre — lift dari pure black ke charcoal visible
           if (mn.startsWith('plastic') || mn === 'tyre' || mn === 'tyre.bump') {
             const br = m.color.r * 0.299 + m.color.g * 0.587 + m.color.b * 0.114
             if (br < 0.06) {
@@ -335,7 +308,6 @@ function loadModel() {
             return
           }
 
-          // Metal-darker — lift multiply
           if (mn.startsWith('metal-darker')) {
             m.color.r = Math.min(m.color.r * 3, 1)
             m.color.g = Math.min(m.color.g * 3, 1)
@@ -345,7 +317,6 @@ function loadModel() {
             return
           }
 
-          // Semua material lain — boost envmap
           if (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial) {
             m.envMapIntensity = (m.envMapIntensity || 1.0) * 1.4
             m.needsUpdate     = true
@@ -353,13 +324,11 @@ function loadModel() {
         })
       })
 
-      // 5. Hotspot: hood area
       const boxFinal = new THREE.Box3().setFromObject(car)
       const sf       = boxFinal.getSize(new THREE.Vector3())
       const mxF      = boxFinal.max
       hotspotLocal.set(0, sf.y * 0.72, mxF.z * 0.50)
 
-      // 6. Entry dari kanan
       car.position.x = ENTRY_X_START
       scene.add(car)
 
@@ -371,7 +340,6 @@ function loadModel() {
   )
 }
 
-// ─── Animate ─────────────────────────────────────────────────
 function easeOutExpo(t) { return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t) }
 
 function animate() {
@@ -379,7 +347,6 @@ function animate() {
 
   if (!car) { renderer.render(scene, camera); return }
 
-  // Entry animation
   if (entryActive) {
     entryT = Math.min(entryT + (1 / (ENTRY_DURATION * 60)), 1)
     const e = easeOutExpo(entryT)
@@ -396,7 +363,6 @@ function animate() {
     }
   }
 
-  // Yaw rotation
   if (!isDragging) {
     yawVel *= 0.92
     yaw    += yawVel * 0.004
@@ -405,11 +371,9 @@ function animate() {
   car.rotation.y = yaw
   yawDeg.value   = Math.round(((yaw * 180 / Math.PI) % 360 + 360) % 360)
 
-  // Smooth zoom
   camera.position.z += (camZ - camera.position.z) * 0.1
   camera.lookAt(CAM_LOOK)
 
-  // Hotspot projection
   if (isReady.value) {
     const wp  = hotspotLocal.clone()
     wp.applyEuler(new THREE.Euler(0, car.rotation.y, 0))
@@ -424,7 +388,6 @@ function animate() {
   renderer.render(scene, camera)
 }
 
-// ─── Input ───────────────────────────────────────────────────
 function onWheel(e) {
   camZ = Math.max(CAM_Z_MIN, Math.min(CAM_Z_MAX, camZ + e.deltaY * 0.007))
 }
@@ -470,7 +433,6 @@ function onTouchMove(e) {
   } else onPointerMove(e)
 }
 
-// ─── Lifecycle ───────────────────────────────────────────────
 onMounted(() => {
   init()
   const el = viewerEl.value
@@ -504,7 +466,6 @@ onUnmounted(() => {
 }
 .three-canvas:active { cursor: grabbing; }
 
-/* ── LOADING ── */
 .loading-overlay {
   position: absolute; inset: 0;
   background: rgba(240,242,245,0.92);
@@ -534,7 +495,6 @@ onUnmounted(() => {
   font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: #0077FF;
 }
 
-/* ── TOP BAR ── */
 .topbar {
   position: absolute; top: 0; left: 0; right: 0; height: 52px;
   background: rgba(255,255,255,0.78); backdrop-filter: blur(12px);
@@ -568,7 +528,6 @@ onUnmounted(() => {
   color: #3D4450; cursor: pointer; margin-left: 8px; transition: all .2s;
 }
 
-/* ── SPEC CARD ── */
 .spec-card {
   position: absolute; left: 24px; top: 68px;
   background: rgba(255,255,255,0.82); backdrop-filter: blur(16px);
@@ -586,7 +545,6 @@ onUnmounted(() => {
 .spec-val { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: #0F1117; }
 .spec-hint { font-family: var(--font-mono); font-size: 9px; color: #0077FF; margin-top: 10px; letter-spacing: .05em; }
 
-/* ── HOTSPOT ── */
 .hotspot {
   position: absolute; transform: translate(-50%, -50%);
   display: flex; align-items: center; gap: 10px;
@@ -615,7 +573,6 @@ onUnmounted(() => {
 }
 .hotspot:hover .hs-label { background: #0077FF; color: white; }
 
-/* ── DEGREE RING ── */
 .deg-ring {
   position: absolute; right: 28px; top: 50%; transform: translateY(-50%);
   width: 96px; text-align: center; z-index: 10;
@@ -627,7 +584,6 @@ onUnmounted(() => {
 .deg-val { font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: #0F1117; }
 .deg-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: .2em; color: #0077FF; }
 
-/* ── STATUS BAR ── */
 .statusbar {
   position: absolute; bottom: 0; left: 0; right: 0; height: 40px;
   background: rgba(255,255,255,0.75); backdrop-filter: blur(12px);
@@ -641,7 +597,6 @@ onUnmounted(() => {
 .status-item { font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; color: #8892A0; }
 .status-center { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; color: #9EA8B5; }
 
-/* ── TRANSITIONS ── */
 .fade-enter-active, .fade-leave-active { transition: opacity .4s; }
 .fade-enter-from, .fade-leave-to       { opacity: 0; }
 

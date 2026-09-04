@@ -1,7 +1,6 @@
 <template>
     <div class="chassis-viewer" ref="viewerEl" :class="{ 'has-active': activeHs !== null }">
 
-      <!-- Custom cursor -->
       <div class="cursor-dot" ref="cursorDot"></div>
       <div class="cursor-ring" ref="cursorRing">
         <svg class="cursor-svg" viewBox="0 0 40 40" fill="none">
@@ -9,7 +8,6 @@
         </svg>
       </div>
 
-      <!-- Background photo -->
       <div class="bg-photo"></div>
       <div class="bg-overlay"></div>
       <div class="bg-vignette"></div>
@@ -17,29 +15,24 @@
       <div class="bg-radial"></div>
       <div class="bg-scan"></div>
 
-      <!-- Radial glow pulses -->
       <div class="hero-glow"></div>
       <div class="hero-glow hero-glow--orange"></div>
 
-      <!-- Animated watermark logo -->
       <div class="bg-logo-wrap">
         <div class="bg-logo-ring bg-logo-ring-1"></div>
         <div class="bg-logo-ring bg-logo-ring-2"></div>
         <img src="/images/TRAD Logo.png" alt="" class="bg-logo-img" />
       </div>
 
-      <!-- Speed lines -->
       <div class="speed-lines">
         <div v-for="i in 10" :key="i" class="speed-line" :style="speedStyle(i)"></div>
       </div>
 
-      <!-- HUD corners -->
       <div class="hud-corner hud-tl"><div class="hud-h"></div><div class="hud-v"></div><span class="hud-lbl">{{ t('chassis_view') }}</span></div>
       <div class="hud-corner hud-tr"><div class="hud-h"></div><div class="hud-v"></div><span class="hud-lbl">{{ hotspots.length }} {{ t('parts_count_suffix') }}</span></div>
       <div class="hud-corner hud-bl"><div class="hud-h"></div><div class="hud-v"></div><span class="hud-lbl">{{ t('zoom_prefix') }}{{ Math.round(scale * 100) }}%</span></div>
       <div class="hud-corner hud-br"><div class="hud-h"></div><div class="hud-v"></div><span class="hud-lbl">{{ t('drag_pan') }}</span></div>
 
-      <!-- ══ TOP BAR ══ -->
       <div class="topbar">
         <div class="topbar-left">
           <img src="/images/TRAD Logo.png" alt="TRAD" class="trad-logo-bar" />
@@ -62,7 +55,6 @@
         </div>
       </div>
 
-      <!-- ══ LEFT SIDEBAR ══ -->
       <div class="left-sidebar" :class="{ hidden: activeHs !== null }">
         <div class="sidebar-header">
           <div class="sidebar-dot"></div>
@@ -92,7 +84,6 @@
         </div>
       </div>
 
-      <!-- ══ ZOOM CONTROLS ══ -->
       <div class="zoom-controls">
         <button class="zoom-btn" @click="zoomIn">
           <svg viewBox="0 0 16 16" fill="none"><line x1="8" y1="2" x2="8" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -111,7 +102,6 @@
         <span class="zoom-pct">{{ Math.round(scale * 100) }}%</span>
       </div>
 
-      <!-- ══ CANVAS AREA ══ -->
       <div
         class="canvas-area"
         ref="canvasEl"
@@ -137,7 +127,6 @@
               </div>
             </div>
 
-            <!-- Hotspots -->
             <div v-for="(hs, i) in hotspots" :key="i"
               class="hotspot" :class="{ active: activeHs === i, 'hotspot--empty': !hs.brandVariants || !hs.brandVariants.length }"
               :style="{ left: hs.x + '%', top: hs.y + '%' }"
@@ -160,13 +149,11 @@
         </div>
       </div>
 
-      <!-- ══ POPUP — Feature panel layout (matches reference mockup) ══ -->
       <Transition name="popup">
         <div v-if="activeHs !== null" class="popup-overlay" @click.self="closePopup">
 
           <div class="popup-card popup-card--redesign">
 
-            <!-- Background image (ganti file di /public/images/background/bg_popup.png) -->
             <div class="rd-bg"></div>
             <div class="rd-bg-overlay"></div>
 
@@ -175,7 +162,6 @@
 
             <div class="rd-layout">
 
-              <!-- ══ Brand select (top-left) ══ -->
               <div v-if="currentHs.brandVariants.length > 1" class="rd-brand-select">
                 <span class="rd-brand-select-label">{{ t('select_brand') }}</span>
                 <div class="rd-brand-tabs">
@@ -191,7 +177,6 @@
                 </div>
               </div>
 
-              <!-- ══ Header ══ -->
               <div class="rd-header">
                 <span class="rd-index">{{ String(activeHs + 1).padStart(2, '0') }}</span>
                 <div class="rd-header-text">
@@ -200,10 +185,8 @@
                 </div>
               </div>
 
-              <!-- ══ Main grid: specs | stage | brand profile ══ -->
               <div class="rd-main">
 
-                <!-- AREA 1: LEFT — Specifications (SPESIFIKASI) -->
                 <div class="rd-specs" v-if="specifications.length">
                   <span class="rd-panel-title">{{ bl({ en: 'Specifications', id: 'Spesifikasi' }) }}</span>
                   <div class="rd-specs-list">
@@ -215,10 +198,8 @@
                   </div>
                 </div>
 
-                <!-- CENTER: stage -->
                 <div class="rd-stage">
 
-                  <!-- AREA 2: Product Highlights (HIGHLIGHT PRODUK) — badge row connected by dotted arc -->
                   <div v-if="productHighlights.length" class="rd-features">
                     <span class="rd-features-label">{{ bl({ en: 'Product Highlights', id: 'Highlight Produk' }) }} ///</span>
                     <div class="rd-features-row">
@@ -231,7 +212,6 @@
                     </div>
                   </div>
 
-                  <!-- Product visual on radar-style pedestal -->
                   <div class="rd-stage-visual">
 
                     <Transition name="hero-swap" mode="out-in">
@@ -263,11 +243,9 @@
 
                 </div>
 
-                <!-- RIGHT: brand profile column -->
                 <Transition name="content-swap" mode="out-in">
                   <div :key="activeBrand" class="rd-profile" v-if="currentVariant.profile">
 
-                    <!-- AREA 3: Brand Profile card -->
                     <div class="rd-profile-card">
                       <div class="rd-profile-card-header">
                         <span class="rd-profile-dot"></span>
@@ -296,7 +274,6 @@
                       </div>
                     </div>
 
-                    <!-- AREA 4: OEM Partner (MITRA OEM) -->
                     <div class="rd-section" v-if="oemList.length">
                       <span class="rd-panel-title">{{ bl({ en: 'OEM Partner', id: 'Mitra OEM' }) }} ///</span>
                       <div class="rd-oem-list">
@@ -306,7 +283,6 @@
                       </div>
                     </div>
 
-                    <!-- AREA 5: Specialization (SPESIALISASI) -->
                     <div class="rd-section" v-if="currentVariant.profile.specialization">
                       <span class="rd-panel-title">{{ bl({ en: 'Specialization', id: 'Spesialisasi' }) }} ///</span>
                       <div class="rd-spec-block">
@@ -316,7 +292,6 @@
                       </div>
                     </div>
 
-                    <!-- AREA 6: History Highlight (SOROTAN SEJARAH) -->
                     <div class="rd-section" v-if="currentVariant.profile.historyHighlight && currentVariant.profile.historyHighlight.length">
                       <span class="rd-panel-title">{{ bl({ en: 'History Highlight', id: 'Sorotan Sejarah' }) }} ///</span>
                       <div class="rd-timeline">
@@ -331,7 +306,6 @@
                 </Transition>
               </div>
 
-              <!-- ══ AREA 7: Advantages (KEUNGGULAN) — boxed card, icon-on-top items separated by dividers ══ -->
               <div class="rd-advantages" v-if="currentVariant.profile && currentVariant.profile.advantages && currentVariant.profile.advantages.length">
                 <span class="rd-panel-title rd-panel-title--boxed">{{ t('advantages') }} ///</span>
                 <div class="rd-adv-row">
@@ -343,7 +317,6 @@
                 </div>
               </div>
 
-              <!-- ══ Bottom nav ══ -->
               <div class="rd-nav">
                 <button class="rd-nav-btn" @click="prevPart" :disabled="activeHs === 0">{{ t('prev') }}</button>
                 <button class="rd-nav-cta" @click="closePopup">{{ t('back_to_chassis') }}</button>
@@ -353,17 +326,14 @@
             </div>
           </div>
 
-          <!-- ══ Collapsed company profile / video widget ══ -->
           <div class="video-widget" :class="{ 'video-widget--open': videoExpanded }">
 
-            <!-- Minimized: just a small floating button -->
             <button v-if="!videoExpanded" class="vw-fab" @click="videoExpanded = true">
               <span class="vw-fab-ring"></span>
               <svg class="vw-fab-play" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#0066E6"/><polygon points="9,7 16,11 9,15" fill="white"/></svg>
               <span class="vw-fab-label">{{ t('company_profile') }}</span>
             </button>
 
-            <!-- Expanded: full card -->
             <div v-else class="video-widget-card">
               <div class="vw-card-header">
                 <span class="vw-logo-box">
@@ -416,7 +386,6 @@
         </div>
       </Transition>
 
-      <!-- ══ STATUS BAR ══ -->
       <div class="statusbar">
         <div class="status-left">
           <span class="status-dot"></span>
@@ -522,7 +491,6 @@ const modelFailed = ref({})
 function onModelError(src) { modelFailed.value[src] = true }
 
 const BP = {
-  // ───────────────────────── SHOCK ABSORBER ─────────────────────────
   Showa: {
     founded: '1938',
     country: { en: 'Japan', id: 'Jepang' },
@@ -596,7 +564,6 @@ const BP = {
     ],
   },
 
-  // ───────────────────────── UPPER ARM ─────────────────────────
   '555': {
     founded: '1960',
     country: { en: 'Japan', id: 'Jepang' },
@@ -634,7 +601,6 @@ const BP = {
     ],
   },
 
-  // ───────────────────────── LOWER ARM ─────────────────────────
   '555-lower': {
     founded: '1960',
     country: { en: 'Japan', id: 'Jepang' },
@@ -672,7 +638,6 @@ const BP = {
     ],
   },
 
-  // ───────────────────────── TIE ROD ─────────────────────────
   '555-tierod': {
     founded: '1960',
     country: { en: 'Japan', id: 'Jepang' },
@@ -695,7 +660,7 @@ const BP = {
       id: 'Rakitan tie rod dengan ball stud yang dikeraskan dan penutup debu tersegel, diperiksa kualitasnya secara individual untuk torsi ball stud, integritas segel, dan presisi ulir.',
     },
     historyHighlight: [
-      { en: '1960 Manufacturing begins', id: '1960 Manufaktur dimulai' },
+      { en: '1960 Manufacturing begi ns', id: '1960 Manufaktur dimulai' },
       { en: 'Individual QC per assembly', id: 'QC individual tiap rakitan' },
       { en: 'Proven in high-mileage driving', id: 'Terbukti pada berkendara jarak tinggi' },
       { en: 'Present Day', id: 'Present Day' },
@@ -710,7 +675,6 @@ const BP = {
     ],
   },
 
-  // ───────────────────────── LINK STABILIZER ─────────────────────────
   '555-link': {
     founded: '1960',
     country: { en: 'Japan', id: 'Jepang' },
@@ -748,7 +712,6 @@ const BP = {
     ],
   },
 
-  // ───────────────────────── BUSHING ─────────────────────────
   RBI: {
     founded: '1975',
     country: { en: 'Thailand', id: 'Thailand' },
@@ -821,7 +784,6 @@ const BP = {
     ],
   },
 
-  // General NOK profile (oil seals) — not currently mapped to a hotspot, kept for reference
   NOK: {
     founded: '1939',
     country: { en: 'Japan', id: 'Jepang' },
@@ -830,7 +792,6 @@ const BP = {
     specifications: [
       { icon: 'factory.png', en: "Japan's first domestic oil seal manufacturer (1939)", id: 'Produsen oil seal dalam negeri pertama Jepang (1939)' },
       { icon: 'gear.png', en: '60+ global sealing facilities', id: '60+ fasilitas penyegelan global' },
-      { icon: 'car.png', en: 'Tier-1 OEM sealing supplier', id: 'Pemasok sealing OEM Tier-1' },
       { icon: 'engineering.png', en: 'Advanced polymer science for custom formulations', id: 'Ilmu polimer canggih untuk formulasi khusus' },
     ],
     productHighlights: [
@@ -859,7 +820,6 @@ const BP = {
     ],
   },
 
-  // ───────────────────────── RACK STEERING ASSEMBLY ─────────────────────────
   'NOK-steering': {
     founded: '1939',
     country: { en: 'Japan', id: 'Jepang' },
@@ -896,7 +856,6 @@ const BP = {
     ],
   },
 
-  // ───────────────────────── DISC BRAKE ─────────────────────────
   Seiken: {
     founded: '1959',
     country: { en: 'Japan', id: 'Jepang' },
@@ -971,7 +930,6 @@ const BP = {
     ],
   },
 
-  // ───────────────────────── DISC ROTOR ─────────────────────────
   'Compact Brakes-rotor': {
     founded: '1994',
     country: { en: 'Thailand', id: 'Thailand' },
@@ -1008,7 +966,6 @@ const BP = {
     ],
   },
 
-  // ───────────────────────── WHEEL BEARING ─────────────────────────
   NSK: {
     founded: '1916',
     country: { en: 'Japan', id: 'Jepang' },
@@ -1086,7 +1043,6 @@ const trustBrands = ['SHOWA', 'KJ', '555', 'RBI', 'NOK', 'SEIKEN', 'COMPACT BRAK
 const originCountries = computed(() => new Set(Object.values(BP).map(b => b.country?.en).filter(Boolean)).size)
 
 const hotspots = [
-  // ── FRONT-LEFT: Shock Absorber (Showa / KJ) — SUDAH BENAR, tidak diubah
   {
     x: 20, y: 28, label: 'Shock Absorber', labelDir: 'right', icon: '🔧',
     brandVariants: [
@@ -1105,7 +1061,6 @@ const hotspots = [
     ],
   },
 
-  // ── FRONT: Upper Arm — DIPERBAIKI: RBI → 555
   {
     x: 16, y: 35, label: 'Upper Arm', labelDir: 'right', icon: '🔩',
     brandVariants: [
@@ -1117,7 +1072,6 @@ const hotspots = [
     ],
   },
 
-  // ── FRONT: Bushing — DIPERBAIKI: 555 → RBI (+ KJTRIC sebagai varian)
   {
     x: 14, y: 43, label: 'Bushing', labelDir: 'right', icon: '⭕',
     brandVariants: [
@@ -1134,7 +1088,6 @@ const hotspots = [
     ],
   },
 
-  // ── FRONT: Lower Arm — DIPERBAIKI: RBI → 555 (profil lower arm)
   {
     x: 17, y: 66, label: 'Lower Arm', labelDir: 'right', icon: '🔩',
     brandVariants: [
@@ -1146,7 +1099,6 @@ const hotspots = [
     ],
   },
 
-  // ── FRONT: Tie Rod — SUDAH BENAR, tidak diubah
   {
     x: 21, y: 74, label: 'Tie Rod', labelDir: 'right', icon: '↔️',
     brandVariants: [
@@ -1158,7 +1110,6 @@ const hotspots = [
     ],
   },
 
-  // ── FRONT: Brake Pad — SUDAH BENAR (Compact Brakes), tidak diubah
   {
     x: 25, y: 78, label: 'Brake Pad', labelDir: 'right', icon: '🔴',
     brandVariants: [
@@ -1171,7 +1122,6 @@ const hotspots = [
     ],
   },
 
-  // ── FRONT: Disc Rotor — DIPERBAIKI: Seiken → Compact Brakes (rotor)
   {
     x: 20, y: 89, label: 'Disc Rotor', labelDir: 'right', icon: '⭕',
     brandVariants: [
@@ -1184,7 +1134,6 @@ const hotspots = [
     ],
   },
 
-  // ── FRONT: Wheel Bearing — DITAMBAH varian GMB (PDF mendaftar NSK & GMB berdua)
   {
     x: 32, y: 81, label: 'Wheel Bearing', labelDir: 'right', icon: '🔵',
     brandVariants: [
@@ -1203,7 +1152,6 @@ const hotspots = [
     ],
   },
 
-  // ── FRONT: Rack Steering Assy — DIPERBAIKI: KJ Steering → NOK
   {
     x: 33, y: 82, label: 'Rack Steering Assy', labelDir: 'right', icon: '🎯',
     brandVariants: [
@@ -1215,7 +1163,6 @@ const hotspots = [
     ],
   },
 
-  // ── FRONT-RIGHT: Wheel Bearing — DITAMBAH varian GMB
   {
     x: 48, y: 83, label: 'Wheel Bearing', labelDir: 'left', icon: '🔵',
     brandVariants: [
@@ -1234,7 +1181,6 @@ const hotspots = [
     ],
   },
 
-  // ── REAR-RIGHT: Shock Absorber — SUDAH BENAR, tidak diubah
   {
     x: 85, y: 15, label: 'Shock Absorber', labelDir: 'left', icon: '🔧',
     brandVariants: [
@@ -1251,7 +1197,6 @@ const hotspots = [
     ],
   },
 
-  // ── REAR: Upper Arm — DIPERBAIKI: RBI → 555
   {
     x: 87, y: 26, label: 'Upper Arm', labelDir: 'left', icon: '🔩',
     brandVariants: [
@@ -1263,7 +1208,6 @@ const hotspots = [
     ],
   },
 
-  // ── REAR: Bushing — DIPERBAIKI: 555 → RBI (+ KJTRIC)
   {
     x: 88, y: 29, label: 'Bushing', labelDir: 'left', icon: '⭕',
     brandVariants: [
@@ -1280,7 +1224,6 @@ const hotspots = [
     ],
   },
 
-  // ── REAR: Link Stabilizer — SUDAH BENAR, tidak diubah
   {
     x: 85, y: 40, label: 'Link Stabilizer', labelDir: 'left', icon: '↔️',
     brandVariants: [
@@ -1320,9 +1263,8 @@ const hotspots = [
 const currentHs = computed(() => activeHs.value !== null ? hotspots[activeHs.value] : null)
 const currentVariant = computed(() => currentHs.value ? currentHs.value.brandVariants[activeBrand.value] : null)
 
-// AREA 1 — Specifications (SPESIFIKASI)
 const specifications = computed(() => currentVariant.value?.profile?.specifications || [])
-// AREA 2 — Product Highlights (HIGHLIGHT PRODUK)
+
 const productHighlights = computed(() => currentVariant.value?.profile?.productHighlights || [])
 
 const oemList = computed(() => {
@@ -1481,7 +1423,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
 
   <style scoped>
 
-  /* ══ CURSOR ════════════════════════════════════ */
   * { cursor: none !important; }
   .cursor-dot {
     position: fixed; width: 8px; height: 8px;
@@ -1501,14 +1442,12 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .cursor-svg { width: 100%; height: 100%; animation: cursor-spin 8s linear infinite; }
   @keyframes cursor-spin { to { transform: rotate(360deg); } }
 
-  /* ══ BASE ══════════════════════════════════════ */
   .chassis-viewer {
     position: absolute; inset: 0; overflow: hidden;
     background: #05070D;
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
   }
 
-  /* ══ PHOTO BACKGROUND ══════════════════════════ */
   .bg-photo {
     position: absolute; inset: 0; z-index: 0;
     background-image: url('/images/background/bg_chassis.png');
@@ -1551,7 +1490,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   }
   @keyframes scan-sweep { 0% { top: 10%; opacity: 0; } 6% { opacity: 0.7; } 44% { opacity: 0.35; } 50% { top: 90%; opacity: 0; } 100% { top: 90%; opacity: 0; } }
 
-  /* ══ RADIAL GLOW PULSES ════════════════════════ */
   .hero-glow {
     position: absolute; left: 50%; top: 46%;
     width: 900px; height: 560px; transform: translate(-50%, -50%);
@@ -1574,7 +1512,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     50%       { opacity: 1;   transform: translateX(-50%) scale(1.05); }
   }
 
-  /* ══ ANIMATED WATERMARK LOGO ═══════════════════ */
   .bg-logo-wrap {
     position: absolute; inset: 0; z-index: 1;
     display: flex; align-items: center; justify-content: center;
@@ -1622,7 +1559,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   }
   @keyframes speed-rush { from { transform: translateX(0); } to { transform: translateX(calc(100vw + 250px)); } }
 
-  /* ══ HUD CORNERS ═══════════════════════════════ */
   .hud-corner { position: absolute; width: 44px; height: 44px; pointer-events: none; z-index: 15; }
   .hud-tl { top: 66px; left: 286px; }
   .hud-tr { top: 66px; right: 68px; }
@@ -1640,7 +1576,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .hud-tr .hud-lbl, .hud-br .hud-lbl { left: auto; right: 0; }
   .hud-bl .hud-lbl, .hud-br .hud-lbl { bottom: auto; top: -17px; }
 
-  /* ══ TOP BAR ═══════════════════════════════════ */
   .topbar {
     position: absolute; top: 0; left: 0; right: 0; height: 58px;
     display: flex; align-items: center; justify-content: space-between;
@@ -1667,7 +1602,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .btn-back { min-height: 44px; font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: .1em; padding: 7px 15px; border-radius: 4px; border: 1px solid rgba(80,160,255,.22); background: rgba(10,18,32,0.5); color: rgba(210,228,255,0.8); margin-left: 4px; transition: all .2s; }
   .btn-back:hover { border-color: #3399FF; color: #7FC0FF; background: rgba(0,119,255,.14); }
 
-  /* ══ LEFT SIDEBAR ══════════════════════════════ */
   .left-sidebar {
     position: absolute; left: 0; top: 58px; bottom: 40px;
     width: 280px; z-index: 15;
@@ -1699,7 +1633,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .sidebar-item--empty:hover { background: transparent; border-left-color: transparent; }
   .sidebar-brand-dot--empty { color: rgba(160,170,190,.7); background: rgba(140,150,170,0.1); font-style: italic; }
 
-  /* ══ ZOOM CONTROLS ═════════════════════════════ */
   .zoom-controls { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 7px; background: rgba(8,14,26,0.75); backdrop-filter: blur(16px); border: 1px solid rgba(80,160,255,0.25); border-radius: 12px; padding: 12px 9px; z-index: 15; box-shadow: 0 4px 30px rgba(0,0,0,0.45); }
   .zoom-btn { width: 44px; height: 44px; border-radius: 6px; border: 1px solid rgba(80,160,255,0.28); background: rgba(10,18,32,0.6); color: rgba(180,205,240,.8); display: flex; align-items: center; justify-content: center; transition: all .2s; touch-action: manipulation; }
   .zoom-btn:hover { background: rgba(0,119,255,0.16); border-color: rgba(80,160,255,.6); color: #7FC0FF; }
@@ -1710,7 +1643,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .zoom-divider { width: 20px; height: 1px; background: rgba(80,160,255,0.2); }
   .zoom-pct { font-size: 8px; letter-spacing: .08em; color: rgba(160,200,255,.55); white-space: nowrap; }
 
-  /* ══ CANVAS ════════════════════════════════════ */
   .canvas-area { position: absolute; inset: 58px 0 40px 280px; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 5; touch-action: none; user-select: none; }
   .has-active .canvas-area { left: 0; }
   .canvas-inner { position: relative; display: inline-block; will-change: transform; z-index: 3; }
@@ -1722,7 +1654,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .img-ring--1 { width: 108%; height: 108%; border: 1px dashed rgba(80,160,255,0.18); animation: bg-ring-spin 34s linear infinite; }
   .img-ring--2 { width: 122%; height: 122%; border: 1px dotted rgba(80,160,255,0.12); animation: bg-ring-spin-rev 48s linear infinite; }
 
-  /* Floating wrapper — makes the chassis feel like it's hovering/turning gently */
   .img-float { animation: chassis-float 6s ease-in-out infinite; transform-origin: 50% 85%; }
   @keyframes chassis-float {
     0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
@@ -1730,7 +1661,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   }
   .chassis-img { display: block; max-width: 1020px; width: 68vw; height: auto; border-radius: 12px; pointer-events: none; filter: drop-shadow(0 30px 60px rgba(0,0,0,0.55)) drop-shadow(0 0 40px rgba(0,120,255,0.12)); }
 
-  /* ══ HOTSPOTS ══════════════════════════════════ */
   .hotspot { position: absolute; width: 52px; height: 52px; padding: 0; border: 0; background: transparent; color: inherit; appearance: none; transform: translate(-50%,-50%); z-index: 10; cursor: pointer; touch-action: manipulation; }
   .hs-pulse { position: absolute; border-radius: 50%; border: 1px solid rgba(51,153,255,0.55); top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; }
   .hs-p1 { width: 30px; height: 30px; animation: hs-pulse 2.6s ease-out infinite; }
@@ -1805,7 +1735,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .rd-layout::-webkit-scrollbar { width: 5px; }
   .rd-layout::-webkit-scrollbar-thumb { background: rgba(80,160,255,0.25); border-radius: 3px; }
 
-  /* ── Generic empty icon placeholder — dashed slot for user's own icons ── */
   .rd-icon-slot {
     display: inline-flex; flex-shrink: 0;
     width: 36px; height: 36px; border-radius: 50%;
@@ -1815,7 +1744,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .rd-icon-slot--lg { width: 60px; height: 60px; border-radius: 18px; }
   .rd-icon-slot--logo { width: 44px; height: 44px; border-radius: 10px; }
 
-  /* Filled state — used when an actual icon image is rendered (v-if="X.icon") */
   .rd-icon-slot--filled {
     border-style: solid;
     border-color: rgba(90,170,255,0.3);
@@ -1831,7 +1759,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     margin-bottom: 12px;
   }
 
-  /* ── Brand select (top-left) ── */
   .rd-brand-select { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; flex-shrink: 0; }
   .rd-brand-select-label { font-family: var(--font-mono, monospace); font-size: 9.5px; letter-spacing: .2em; color: rgba(150,195,255,.55); text-transform: uppercase; }
   .rd-brand-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -1856,7 +1783,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .rd-title { font-size: 29px; font-weight: 800; color: #F8FAFF; margin: 0; letter-spacing: -.01em; position: relative; display: inline-block; padding-bottom: 6px; }
   .rd-title::after { content: ''; position: absolute; left: 0; bottom: 0; width: 44px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, #0066E6, #3399FF); }
 
-  /* ── Main grid: specs | stage | profile ── */
   .rd-main {
     position: relative;
     display: flex;
@@ -1864,10 +1790,9 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     flex: 1;
     min-height: 0;
     margin-bottom: 14px;
-    padding-right: 400px; /* reserve ruang utk profile yg absolute */
+    padding-right: 400px;
   }
 
-  /* AREA 1 — Specifications */
   .rd-specs {
     width: 300px; flex-shrink: 0;
     background: rgba(8,14,26,0.5); backdrop-filter: blur(10px);
@@ -1886,10 +1811,8 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     overflow: hidden;
   }
 
-  /* Center: stage */
   .rd-stage { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-  /* AREA 2 — Product Highlights */
   .rd-features { width: 100%; margin-bottom: 10px; }
   .rd-features-label {
     display: block; text-align: center; font-family: var(--font-mono, monospace); font-size: 9.5px;
@@ -1904,7 +1827,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   }
   .rd-feature-connector { position: absolute; top: 30px; left: calc(50% + 52px); width:(100% - 52px); height: 1px; border-top: 1px dashed rgba(90,170,255,0.35); }
 
-  /* Big hemisphere-style dome glow behind the product, like the reference mockup */
   .rd-stage-visual {
     position: relative; width: 100%; max-width: 480px; aspect-ratio: 1.15;
     display: flex; align-items: center; justify-content: center;
@@ -1962,7 +1884,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
 .rd-profile::-webkit-scrollbar { width: 4px; }
 .rd-profile::-webkit-scrollbar-track { background: transparent; }
 .rd-profile::-webkit-scrollbar-thumb { background: rgba(80,160,255,0.25); border-radius: 3px; }
-  /* AREA 3 — Brand Profile stays boxed — matches reference's only "card" element */
   .rd-profile-card {
     background: rgba(8,14,26,0.55); backdrop-filter: blur(10px);
     border: 1px solid rgba(80,160,255,0.18); border-radius: 16px; padding: 20px;
@@ -1984,8 +1905,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .rd-fact-lbl { font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: .14em; color: rgba(150,195,255,.55); text-transform: uppercase; }
   .rd-fact-val { font-size: 15px; font-weight: 600; color: #EAF3FF; }
 
-  /* AREA 4-6 — OEM Partner / Specialization / History — open sections, no heavy
-     box, just a title with a thin underline divider (matches reference style) */
   .rd-section { padding-top: 2px; flex-shrink: 0; }
   .rd-section .rd-panel-title {
     position: relative; padding-bottom: 10px; margin-bottom: 14px;
@@ -1996,19 +1915,16 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .rd-icon-slot--oem { width: 48px; height: 48px; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.04); }
   .rd-icon-slot--oem img { width: 100%; height: 100%; object-fit: contain; }
 
-  /* AREA 5 — Specialization: single icon + paragraph block */
   .rd-spec-block { display: flex; align-items: flex-start; gap: 13px; }
   .rd-spec-block .rd-icon-slot { width: 40px; height: 40px; }
   .rd-spec-block-text { margin: 0; padding-top: 6px; font-size: 13.5px; line-height: 1.6; color: rgba(230,240,255,0.9); }
 
-  /* AREA 6 — History Highlight: dynamic-length chain */
   .rd-timeline { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; position: relative; padding-top: 5px; flex-wrap: wrap; }
   .rd-timeline::before { content: ''; position: absolute; top: 9px; left: 6%; right: 6%; height: 1px; background: rgba(80,160,255,0.2); }
   .rd-timeline-node { display: flex; flex-direction: column; align-items: center; gap: 7px; flex: 1; min-width: 72px; }
   .rd-timeline-dot { width: 9px; height: 9px; border-radius: 50%; background: #3399FF; box-shadow: 0 0 9px rgba(51,153,255,.7); position: relative; z-index: 1; }
   .rd-timeline-label { font-size: 10.5px; font-weight: 600; color: rgba(210,228,255,.85); text-align: center; line-height: 1.35; }
 
-  /* ── Bottom: AREA 7 — Advantages grid ── */
   .rd-advantages {
     position: relative;
     z-index: 3;
@@ -2030,7 +1946,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .rd-icon-slot--adv { width: 46px; height: 46px; }
   .rd-adv-label { font-size: 10.5px; font-weight: 700; letter-spacing: .02em; line-height: 1.4; color: #EAF3FF; text-align: center; text-transform: uppercase; }
 
-  /* ── Bottom nav ── */
   .rd-nav { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
   .rd-nav-btn { min-height: 48px; font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: .1em; padding: 13px 16px; border-radius: 8px; flex-shrink: 0; border: 1px solid rgba(80,160,255,0.25); background: rgba(10,18,32,0.5); color: rgba(180,205,240,.75); transition: all .2s; touch-action: manipulation; }
   .rd-nav-btn:hover:not(:disabled) { background: rgba(0,119,255,0.14); border-color: #3399FF; color: #7FC0FF; }
@@ -2038,12 +1953,10 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .rd-nav-cta { min-height: 48px; font-family: var(--font-mono, monospace); font-size: 12px; font-weight: 700; letter-spacing: .1em; padding: 14px 16px; border-radius: 8px; flex: 1; border: none; background: #0066E6; color: white; box-shadow: 0 4px 16px rgba(0,102,230,.35); transition: all .2s; touch-action: manipulation; }
   .rd-nav-cta:hover { background: #0044BB; box-shadow: 0 6px 20px rgba(0,102,230,.5); }
 
-  /* ── Collapsed company video widget ── */
   .video-widget {
     position: absolute; right: 20px; bottom: 20px; z-index: 40;
   }
 
-  /* Minimized state — small floating round button */
   .vw-fab {
     position: relative; display: flex; align-items: center; gap: 9px;
     background: rgba(8,14,26,0.9); backdrop-filter: blur(12px);
@@ -2062,7 +1975,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .vw-fab-play { width: 30px; height: 30px; flex-shrink: 0; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4)); }
   .vw-fab-label { font-family: var(--font-mono, monospace); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; color: #F2F6FF; white-space: nowrap; }
 
-  /* Expanded state — full card */
   .video-widget-card {
     width: 300px;
     background: rgba(8,14,26,0.92);
@@ -2108,7 +2020,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .vw-expand-enter-from, .vw-expand-leave-to { opacity: 0; max-height: 0; }
   .vw-expand-enter-to, .vw-expand-leave-from { opacity: 1; max-height: 320px; }
 
-  /* ══ STATUS BAR ════════════════════════════════ */
   .statusbar { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: rgba(5,9,18,0.85); backdrop-filter: blur(16px); border-top: 1.5px solid rgba(80,160,255,0.22); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; box-shadow: 0 -2px 24px rgba(0,0,0,0.4); }
   .status-left, .status-right { display: flex; align-items: center; gap: 7px; }
   .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 7px rgba(34,197,94,.55); animation: dot-pulse 2.2s ease-in-out infinite; }
@@ -2117,7 +2028,6 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .status-sep { color: rgba(80,160,255,.3); font-size: 10px; }
   .status-center { font-size: 9px; letter-spacing: .08em; color: rgba(160,200,255,.4); }
 
-  /* ══ TRANSITIONS ═══════════════════════════════ */
   .popup-enter-active { transition: all .38s cubic-bezier(0.16,1,0.3,1); }
   .popup-leave-active { transition: all .22s ease; }
   .popup-enter-from, .popup-leave-to { opacity: 0; }
@@ -2126,19 +2036,16 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .popup-leave-to   .popup-card--redesign,
   .popup-leave-to   .video-widget { transform: scale(.96) translateY(12px); }
 
-  /* Hero image swap */
   .hero-swap-enter-active { transition: opacity .25s ease, transform .28s cubic-bezier(0.16,1,0.3,1); }
   .hero-swap-leave-active { transition: opacity .18s ease, transform .18s ease; }
   .hero-swap-enter-from   { opacity: 0; transform: scale(1.04); }
   .hero-swap-leave-to     { opacity: 0; transform: scale(0.96); }
 
-  /* Content (right column) swap */
   .content-swap-enter-active { transition: opacity .3s ease, transform .32s cubic-bezier(0.16,1,0.3,1); }
   .content-swap-leave-active { transition: opacity .18s ease; }
   .content-swap-enter-from   { opacity: 0; transform: translateX(12px); }
   .content-swap-leave-to     { opacity: 0; }
 
-  /* ══ RESPONSIVE ════════════════════════════════ */
   @media (max-width: 1500px) {
     .rd-profile { width: 340px; }
     .rd-specs { width: 260px; }
@@ -2238,16 +2145,18 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   }
   @media (min-width: 861px) and (max-height: 800px) {
     .rd-layout { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto auto; overflow-y: auto; }
-    .rd-main { display: grid; grid-template-columns: minmax(220px, 27%) minmax(0, 1fr) 31%; gap: 14px; padding-right: 0; align-items: stretch; }
+    .rd-main { display: grid; grid-template-columns: minmax(220px, 27%) minmax(0, 1fr) 31%; gap: 14px; padding-right: 0; align-items: stretch; overflow: visible; }
     .rd-specs { width: auto; max-height: 100%; overflow-y: auto; }
-    .rd-stage { min-width: 0; min-height: 0; justify-content: flex-start; overflow: hidden; }
+    .rd-stage { min-width: 0; min-height: 0; justify-content: flex-start; overflow: visible; }
     .rd-profile { position: static; width: auto; max-height: 100%; overflow-y: auto; }
+    .rd-features { transform: translateY(-78px); }
     .rd-features-row { flex-wrap: nowrap; gap: 3px; }
     .rd-feature { width: auto; flex: 1 1 0; min-width: 0; }
     .rd-feature-label { font-size: 8px; }
     .rd-feature .rd-icon-slot--lg { width: 42px; height: 42px; border-radius: 12px; }
     .rd-feature-connector { display: none; }
     .rd-stage-visual { flex: 1 1 auto; width: 100%; height: auto; min-height: 150px; max-height: 100%; aspect-ratio: auto; }
+    .rd-stage-model { transform: translateY(-42px) scale(2.2); }
     .rd-advantages { max-height: 116px; overflow-y: auto; }
   }
   @media (prefers-reduced-motion: reduce) {

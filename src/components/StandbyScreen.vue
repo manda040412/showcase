@@ -1,39 +1,31 @@
 <template>
   <div class="standby" @click="$emit('start')">
 
-    <!-- Background photo -->
     <div class="bg-photo"></div>
     <div class="bg-overlay"></div>
     <div class="bg-vignette"></div>
 
-    <!-- Animated speed lines -->
     <div class="speed-lines">
       <div v-for="i in 18" :key="i" class="speed-line" :style="speedLineStyle(i)"></div>
     </div>
 
-    <!-- Radial glow pulse -->
     <div class="hero-glow"></div>
     <div class="hero-glow hero-glow--2"></div>
     <div class="hero-glow hero-glow--orange"></div>
 
-    <!-- Grid -->
     <div class="grid-bg"></div>
 
-    <!-- HUD corners — animate in with draw effect -->
     <div class="hud-corner hud-tl"><div class="hud-h"></div><div class="hud-v"></div></div>
     <div class="hud-corner hud-tr"><div class="hud-h"></div><div class="hud-v"></div></div>
     <div class="hud-corner hud-bl"><div class="hud-h"></div><div class="hud-v"></div></div>
     <div class="hud-corner hud-br"><div class="hud-h"></div><div class="hud-v"></div></div>
 
-    <!-- Accent lines -->
     <div class="h-accent h-accent--top"></div>
     <div class="h-accent h-accent--bottom"></div>
 
-    <!-- Animated scan dot on accent line -->
     <div class="scan-dot scan-dot--top"></div>
     <div class="scan-dot scan-dot--bottom"></div>
 
-    <!-- ══ TOP BAR ══ -->
     <div class="topbar">
       <div class="topbar-left">
         <img src="/images/TRAD Logo.png" alt="TRAD" class="trad-logo-top" />
@@ -56,10 +48,8 @@
       </div>
     </div>
 
-    <!-- ══ MAIN CONTENT ══ -->
     <div class="content">
 
-      <!-- TRAD Logo hero -->
       <div class="logo-hero">
         <div class="logo-glow-ring"></div>
         <img src="/images/TRAD Logo.png" alt="TRAD" class="trad-logo-hero" />
@@ -70,37 +60,30 @@
         </div>
       </div>
 
-      <!-- Eyebrow -->
       <p class="eyebrow">
         <span class="eyebrow-line"></span>
         {{ t('eyebrow_360') }}
         <span class="eyebrow-line"></span>
       </p>
 
-      <!-- Headline with char-by-char reveal -->
       <h1 class="headline">
         <span class="line-1">{{ t('headline_line1') }}</span>
         <span class="line-2">{{ t('headline_line2') }}<span class="dot-accent">.</span></span>
       </h1>
 
-      <!-- Subtext -->
       <p class="subtext">{{ t('subtext') }}</p>
 
-      <!-- Pills -->
       <div class="pills">
         <div class="pill pill--1"><span class="pill-dot"></span>{{ t('pill_rotate') }}</div>
         <div class="pill pill--2"><span class="pill-dot"></span>{{ t('pill_hotspot') }}</div>
         <div class="pill pill--3"><span class="pill-dot pill-dot--orange"></span>{{ t('pill_chassis') }}</div>
       </div>
 
-      <!-- CTA -->
       <div class="cta-area">
         <div class="cta-orbit">
-          <!-- Outer dashed ring -->
           <svg class="orbit-svg orbit-outer" viewBox="0 0 160 160" fill="none">
             <circle cx="80" cy="80" r="72" stroke="rgba(80,160,255,0.28)" stroke-width="1" stroke-dasharray="6 5"/>
           </svg>
-          <!-- Inner spinning arc -->
           <svg class="orbit-svg orbit-inner" viewBox="0 0 160 160" fill="none">
             <circle cx="80" cy="80" r="58" stroke="rgba(80,160,255,0.16)" stroke-width="1"/>
             <circle cx="80" cy="80" r="58" stroke="url(#arcG)" stroke-width="2.5"
@@ -113,7 +96,6 @@
               </linearGradient>
             </defs>
           </svg>
-          <!-- CTA button -->
           <button class="cta-btn">
             <div class="cta-ripple"></div>
             <svg class="play-icon" viewBox="0 0 36 36" fill="none">
@@ -128,7 +110,6 @@
 
     </div>
 
-    <!-- ══ RIGHT SIDE PANEL ══ -->
     <div class="side-panel">
       <div class="side-item">
         <span class="side-val">16</span>
@@ -146,7 +127,6 @@
       </div>
     </div>
 
-    <!-- ══ BOTTOM BAR ══ -->
     <div class="bottombar">
       <div class="bottom-l">
         <img src="/images/TRAD Logo.png" alt="TRAD" class="bottom-logo" />
@@ -199,7 +179,6 @@ function speedLineStyle(i) {
 
 <style scoped>
 
-/* ══ Base ════════════════════════════════════ */
 .standby {
   position: absolute; inset: 0;
   background: #05070D;
@@ -210,7 +189,6 @@ function speedLineStyle(i) {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
 }
 
-/* ══ Background photo ════════════════════════ */
 .bg-photo {
   position: absolute; inset: 0;
   background-image: url('/images/background/bg_stanby.png');
@@ -234,7 +212,6 @@ function speedLineStyle(i) {
   background: radial-gradient(ellipse 75% 75% at 50% 45%, transparent 40%, rgba(1,3,8,0.55) 100%);
 }
 
-/* ══ Speed lines ═════════════════════════════ */
 .speed-lines { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
 .speed-line {
   position: absolute; left: -180px; height: 1px;
@@ -246,7 +223,6 @@ function speedLineStyle(i) {
   to   { transform: translateX(calc(100vw + 240px)); }
 }
 
-/* ══ Glow ════════════════════════════════════ */
 .hero-glow {
   position: absolute;
   width: 800px; height: 500px;
@@ -273,7 +249,6 @@ function speedLineStyle(i) {
   50%       { opacity: 1;   transform: scale(1.03); }
 }
 
-/* ══ Grid ════════════════════════════════════ */
 .grid-bg {
   position: absolute; inset: 0;
   background-image:
@@ -284,7 +259,6 @@ function speedLineStyle(i) {
   pointer-events: none; z-index: 3;
 }
 
-/* ══ HUD corners ═════════════════════════════ */
 .hud-corner {
   position: absolute; width: 44px; height: 44px;
   pointer-events: none; z-index: 10;
@@ -306,7 +280,6 @@ function speedLineStyle(i) {
   box-shadow: 0 0 8px rgba(51,153,255,0.7);
   animation: draw-v 0.6s 0.4s ease both;
 }
-/* Direction overrides */
 .hud-tr .hud-h { left: auto; right: 0; }
 .hud-tr .hud-v { left: auto; right: 0; }
 .hud-bl .hud-h { top: auto; bottom: 0; }
@@ -323,7 +296,6 @@ function speedLineStyle(i) {
   to   { height: 28px; opacity: 1; }
 }
 
-/* ══ Accent lines ════════════════════════════ */
 .h-accent {
   position: absolute; left: 0; right: 0; height: 1px;
   background: linear-gradient(90deg,
@@ -337,7 +309,6 @@ function speedLineStyle(i) {
 .h-accent--top    { top: 72px;  animation: fade-in 0.8s 0.3s ease both; }
 .h-accent--bottom { bottom: 60px; animation: fade-in 0.8s 0.3s ease both; }
 
-/* Scan dot riding along accent line */
 .scan-dot {
   position: absolute;
   width: 4px; height: 4px;
@@ -356,7 +327,6 @@ function speedLineStyle(i) {
   100% { left: calc(100% + 10px); opacity: 0; }
 }
 
-/* ══ TOP BAR ═════════════════════════════════ */
 .topbar {
   position: absolute; top: 0; left: 0; right: 0;
   height: 72px;
@@ -441,14 +411,12 @@ function speedLineStyle(i) {
   white-space: nowrap;
 }
 
-/* ══ CONTENT ═════════════════════════════════ */
 .content {
   position: relative; z-index: 10;
   display: flex; flex-direction: column;
   align-items: center; gap: 14px; text-align: center;
 }
 
-/* ══ Logo hero ═══════════════════════════════ */
 .logo-hero {
   position: relative;
   display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -484,7 +452,6 @@ function speedLineStyle(i) {
   white-space: nowrap;
 }
 
-/* ══ Eyebrow ═════════════════════════════════ */
 .eyebrow {
   display: flex; align-items: center; gap: 12px;
   font-size: 13px; font-weight: 700; letter-spacing: 0.22em;
@@ -497,7 +464,6 @@ function speedLineStyle(i) {
   background: rgba(60,150,255,0.6);
 }
 
-/* ══ Headline ════════════════════════════════ */
 .headline {
   display: flex; flex-direction: column;
   align-items: center; margin: 0; line-height: 0.88;
@@ -548,14 +514,12 @@ function speedLineStyle(i) {
   50%       { filter: drop-shadow(0 0 46px rgba(80,180,255,0.75)) drop-shadow(0 0 90px rgba(255,90,31,0.18)); }
 }
 
-/* ══ Subtext ═════════════════════════════════ */
 .subtext {
   font-size: 13px; font-weight: 500; letter-spacing: 0.14em;
   color: rgba(210,228,255,0.8); text-transform: uppercase; margin: 0;
   animation: fade-up 1s 0.6s ease both;
 }
 
-/* ══ Pills ═══════════════════════════════════ */
 .pills {
   display: flex; gap: 8px; flex-wrap: wrap;
   justify-content: center;
@@ -586,7 +550,6 @@ function speedLineStyle(i) {
 .pill--2 { animation: fade-up 0.8s 0.72s ease both; }
 .pill--3 { animation: fade-up 0.8s 0.82s ease both; }
 
-/* ══ CTA ═════════════════════════════════════ */
 .cta-area {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
   animation: fade-up 1s 0.9s ease both;
@@ -625,7 +588,6 @@ function speedLineStyle(i) {
     0 4px 14px rgba(0,60,180,0.4),
     inset 0 1px 0 rgba(255,255,255,0.3);
 }
-/* Ripple inside button */
 .cta-ripple {
   position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, transparent 65%);
@@ -651,7 +613,6 @@ function speedLineStyle(i) {
   50%       { opacity: 1; }
 }
 
-/* ══ SIDE PANEL ══════════════════════════════ */
 .side-panel {
   position: absolute; right: 28px; top: 50%;
   transform: translateY(-50%);
@@ -678,7 +639,6 @@ function speedLineStyle(i) {
 }
 .side-sep { width: 28px; height: 1px; background: rgba(80,160,255,0.25); }
 
-/* ══ BOTTOM BAR ══════════════════════════════ */
 .bottombar {
   position: absolute; bottom: 0; left: 0; right: 0;
   height: 60px;
@@ -749,7 +709,6 @@ function speedLineStyle(i) {
   color: rgba(160,200,255,0.5); text-transform: uppercase;
 }
 
-/* ══ Keyframes ═══════════════════════════════ */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -775,7 +734,6 @@ function speedLineStyle(i) {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ══ Responsive ══════════════════════════════ */
 @media (max-width: 900px) {
   .line-1, .line-2 { font-size: clamp(48px, 13vw, 80px); }
   .side-panel { display: none; }

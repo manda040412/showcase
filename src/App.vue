@@ -1,7 +1,6 @@
 <template>
   <div id="wrapper" :style="{ '--topbar-h': topbarHeight + 'px' }">
 
-    <!-- Global language toggle — visible on every screen -->
     <LangToggle />
 
     <Transition name="screen-fade">
@@ -26,10 +25,8 @@
       />
     </Transition>
 
-    <!-- Flash putih untuk standby/viewer transition -->
     <div class="transition-flash" :class="{ active: flashing }"></div>
 
-    <!-- Black overlay untuk cinematic transition ke chassis -->
     <div class="cinematic-black" :class="{ active: switchingToChassis }"></div>
 
   </div>
@@ -65,7 +62,6 @@ function goToViewer()  { flash(() => { screen.value = 'viewer'  }) }
 function goToStandby() { flash(() => { screen.value = 'standby' }) }
 
 function goToChassis() {
-  // Fade to black dulu, baru switch screen
   switchingToChassis.value = true
   setTimeout(() => {
     screen.value = 'chassis'
@@ -82,7 +78,6 @@ function goToChassis() {
   overflow: hidden;
 }
 
-/* Flash putih — hanya untuk standby <-> viewer */
 .transition-flash {
   position: absolute; inset: 0;
   background: white;
@@ -93,7 +88,6 @@ function goToChassis() {
 }
 .transition-flash.active { opacity: 1; }
 
-/* Black overlay — cinematic fade saat masuk chassis */
 .cinematic-black {
   position: absolute; inset: 0;
   background: #000;
@@ -104,7 +98,6 @@ function goToChassis() {
 }
 .cinematic-black.active { opacity: 1; }
 
-/* ── Standby fade biasa ── */
 .screen-fade-enter-active,
 .screen-fade-leave-active {
   transition: opacity 0.5s ease;
@@ -113,7 +106,6 @@ function goToChassis() {
 .screen-fade-enter-from,
 .screen-fade-leave-to { opacity: 0; }
 
-/* ── Exterior keluar: push in subtle, no blur ── */
 .zoom-exterior-enter-active {
   transition: opacity 0.55s ease-out, transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
   position: absolute; inset: 0;
@@ -131,7 +123,6 @@ function goToChassis() {
   transform: scale(1.08);
 }
 
-/* ── Chassis masuk dari dekat, zoom out ke normal ── */
 .zoom-chassis-enter-active {
   transition: opacity 0.65s ease-out, transform 0.65s cubic-bezier(0.25, 1, 0.5, 1);
   position: absolute; inset: 0;

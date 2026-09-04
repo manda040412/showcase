@@ -1,23 +1,18 @@
 <template>
   <div class="viewer" ref="viewerEl">
-    <!-- Photo background (dark futuristic showroom w/ floating parts) -->
     <div class="bg-photo"></div>
     <div class="bg-overlay"></div>
     <div class="bg-vignette"></div>
 
-    <!-- Rushing light streaks — sells "parts are moving" -->
     <div class="speed-lines">
       <div v-for="i in 14" :key="i" class="speed-line" :style="speedLineStyle(i)"></div>
     </div>
 
-    <!-- Radial glow pulses -->
     <div class="hero-glow"></div>
     <div class="hero-glow hero-glow--orange"></div>
 
-    <!-- Grid overlay -->
     <div class="grid-bg"></div>
 
-    <!-- Animated watermark logo -->
     <div class="bg-logo-wrap" :class="{ visible: isReady }">
       <img src="/images/TRAD Logo.png" alt="" class="bg-logo-img" />
     </div>
@@ -25,7 +20,6 @@
     <canvas ref="canvasRef" class="three-canvas"></canvas>
     <div class="ambient-scan" :class="{ visible: isReady }"></div>
 
-    <!-- Loading -->
     <Transition name="fade">
       <div v-if="!isReady" class="loading-overlay">
         <div class="loading-bg-photo"></div>
@@ -51,7 +45,6 @@
       </div>
     </Transition>
 
-    <!-- Top bar -->
     <div class="topbar" :class="{ visible: bootStage >= 3 }">
       <div class="topbar-left">
         <img src="/images/TRAD Logo.png" alt="TRAD" class="trad-logo-bar" />
@@ -69,7 +62,6 @@
       </div>
     </div>
 
-    <!-- LEFT SIDEBAR: Stat card / CTA panel -->
     <div class="left-sidebar" :class="{ visible: bootStage >= 2 }">
       <div class="spark-panel">
         <div class="spark-inner">
@@ -109,7 +101,6 @@
       </div>
     </div>
 
-    <!-- RIGHT SIDEBAR: gauge only -->
     <div class="right-sidebar" :class="{ visible: bootStage >= 1 }">
       <div class="deg-ring">
         <svg viewBox="0 0 80 80" class="deg-svg">
@@ -146,7 +137,6 @@
       </div>
     </div>
 
-    <!-- Parts Detail Hotspot -->
     <Transition name="pop-in">
       <button
         v-if="bootStage >= 3 && dotVisible"
@@ -164,7 +154,6 @@
       </button>
     </Transition>
 
-    <!-- Bottom HUD -->
     <div class="bottom-hud" :class="{ visible: bootStage >= 3 }">
       <div class="hud-left">
         <div class="hud-item">
@@ -212,7 +201,6 @@ const dotY       = ref(-999)
 const dotVisible = ref(true)
 const bootStage  = ref(0)
 
-// Warna cat mobil — biru muda
 const CAR_PAINT_COLOR = 0x6FA8FF
 
 let renderer, scene, camera, animId
@@ -315,8 +303,6 @@ function buildLights() {
 }
 
 function buildGround() {
-  // Contact shadow only — the podium/ring visual now comes from the bg photo,
-  // so no extra glowing ring mesh is added here.
   const sp = new THREE.Mesh(new THREE.PlaneGeometry(20,20), new THREE.ShadowMaterial({ opacity: 0.15 }))
   sp.rotation.x = -Math.PI/2; sp.receiveShadow = true; scene.add(sp)
 }
@@ -346,7 +332,6 @@ function loadModel() {
         if (!m) return
         const mn = (m.name||'').toLowerCase()
         if (mn.includes('carpaint')||mn.includes('car_paint')||mn.includes('body_paint')) {
-          // Ganti warna cat jadi biru muda
           if (m.color) m.color.set(CAR_PAINT_COLOR)
           m.roughness=0.15; m.metalness=0.85; m.envMapIntensity=2.2; m.needsUpdate=true; return
         }
@@ -421,14 +406,10 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   position: absolute; inset: 0; overflow: hidden; touch-action: none; user-select: none;
 }
 
-/* ── Photo background ── */
 .bg-photo {
   position: absolute; inset: 0; z-index: 0;
   background-image: url('/images/background/bg_car.png');
   background-size: cover;
-  /* Vertical anchor — tweak this % if the podium ring drifts out of
-     alignment with the car on your actual screen resolution. Higher %
-     moves the photo's platform further UP the screen. */
   background-position: center 78%;
   transform-origin: 50% 78%;
   animation: bg-drift 24s ease-in-out infinite alternate;
@@ -448,7 +429,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   background: radial-gradient(ellipse 78% 78% at 50% 48%, transparent 45%, rgba(1,3,8,0.5) 100%);
 }
 
-/* Rushing light streaks — gives the floating parts a sense of motion */
 .speed-lines { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .speed-line {
   position: absolute; left: -180px; height: 1px;
@@ -460,7 +440,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   to   { transform: translateX(calc(100vw + 240px)); }
 }
 
-/* Radial glow pulses */
 .hero-glow {
   position: absolute; left: 50%; top: 42%;
   width: 900px; height: 560px; transform: translate(-50%, -50%);
@@ -484,7 +463,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   50%       { opacity: 1;   transform: translateX(-50%) scale(1.05); }
 }
 
-/* Subtle grid */
 .grid-bg {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background-image:
@@ -501,7 +479,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
 }
 .three-canvas:active { cursor: grabbing; }
 
-/* ── Ambient scan ── */
 .ambient-scan {
   position: absolute; left: 0; right: 0; top: 0; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(60,150,255,0.55), transparent);
@@ -516,7 +493,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   100% { top: 90%; opacity: 0; }
 }
 
-/* ── Loading ── */
 .loading-overlay {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -561,7 +537,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
 .loading-bar-wrap { width: 180px; height: 2px; background: rgba(80,160,255,0.18); border-radius: 1px; overflow: hidden; }
 .loading-bar-fill { height: 100%; background: linear-gradient(90deg, #0066E6, #3399FF); box-shadow: 0 0 8px rgba(51,153,255,0.6); transition: width 0.2s; }
 
-/* ── Topbar ── */
 .topbar {
   position: absolute; top: 0; left: 0; right: 0; height: 52px;
   background: rgba(6,10,20,0.72);
@@ -602,7 +577,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
 }
 .btn-back:hover { border-color: #3399FF; color: #7FC0FF; background: rgba(0,119,255,0.14); }
 
-/* ── Animated watermark logo ── */
 .bg-logo-wrap {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -627,7 +601,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   50%      { opacity: 0.09; }
 }
 
-/* ── LEFT SIDEBAR ── */
 .left-sidebar {
   position: absolute; left: 20px; top: 62px;
   width: 252px; z-index: 10;
@@ -635,8 +608,7 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .left-sidebar.visible { opacity: 1; transform: translateX(0); }
-
-/* ── Spark Panel (animated gradient border) ── */
+ 
 .spark-panel {
   position: relative;
   border-radius: 20px;
@@ -683,7 +655,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   animation: promo-pulse-anim 2s ease-in-out infinite;
 }
 
-/* ── Stat grid ── */
 .stat-grid {
   display: flex; align-items: center; justify-content: center;
   gap: 14px;
@@ -741,7 +712,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   50% { opacity: 0.5; box-shadow: 0 0 0 4px rgba(51,153,255,0.08); }
 }
 
-/* ── RIGHT SIDEBAR ── */
 .right-sidebar {
   position: absolute; right: 20px; top: 62px;
   width: 96px; z-index: 10;
@@ -750,7 +720,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
 }
 .right-sidebar.visible { opacity: 1; transform: translateX(0); }
 
-/* ── Degree gauge ── */
 .deg-ring {
   width: 96px; text-align: center;
   background: rgba(8,14,26,0.75);
@@ -767,7 +736,6 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
 .deg-sym { font-size: 10px; color: #58AEFF; }
 .deg-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: .2em; color: #7FC0FF; opacity: 0.8; }
 
-/* ── Parts hotspot ── */
 .parts-hotspot {
   position: absolute; transform: translate(0, -50%); padding: 10px 0;
   display: flex; flex-direction: row; align-items: center;
@@ -798,9 +766,9 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
 }
 .parts-label {
   position: relative; display: flex; align-items: center; gap: 10px;
-  font-family: var(--font-mono); white-space: nowrap; color: #EAF3FF;
-  background: rgba(5,12,25,.42); backdrop-filter: blur(8px);
-  padding: 7px 12px 7px 9px; border: 1px solid rgba(80,160,255,.3);
+  font-family: var(--font-mono); white-space: nowrap; color: #0B1730;
+  background: #FFFFFF;
+  padding: 7px 12px 7px 9px; border: 1px solid rgba(255,255,255,.9);
   border-radius: 3px; box-shadow: 0 3px 14px rgba(0,0,0,.24);
   transition: color .2s, background .2s, border-color .2s, box-shadow .2s, transform .2s;
 }
@@ -812,10 +780,11 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   box-shadow: 0 0 18px rgba(0,145,255,.4);
   transform: translateX(3px);
 }
+.parts-hotspot:hover .parts-index,
+.parts-hotspot:focus-visible .parts-index { color: #FFFFFF; }
 .parts-hotspot:hover .parts-target { box-shadow: 0 0 0 5px rgba(0,194,255,.1), 0 0 18px rgba(0,194,255,.8); }
 .parts-hotspot:focus-visible { outline: 1px solid #58AEFF; outline-offset: 5px; }
 
-/* ── Bottom HUD ── */
 .bottom-hud {
   position: absolute; bottom: 0; left: 0; right: 0; height: 44px;
   background: rgba(5,9,18,0.82);
@@ -836,13 +805,12 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
 .hud-dot { width: 6px; height: 6px; border-radius: 50%; }
 .hud-dot.green { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.6); }
 .hud-center { font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em; color: rgba(160,200,255,0.45); }
-
-/* ── Transitions ── */
+ 
 .fade-enter-active, .fade-leave-active { transition: opacity .4s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 .pop-in-enter-active { transition: all .4s cubic-bezier(0.16,1,0.3,1); }
 .pop-in-enter-from { opacity: 0; transform: translate(0,-50%) scale(0.8); }
-
+  
 @media (prefers-reduced-motion: reduce) {
   .bg-photo, .bg-logo-img, .speed-line, .hero-glow, .loading-bg-photo { animation: none !important; }
   .ambient-scan, .spark-panel, .spark-panel::before, .spark-badge-dot, .spark-cta-shine, .spark-cta-icon {
