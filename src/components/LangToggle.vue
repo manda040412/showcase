@@ -44,4 +44,12 @@ import { lang, toggleLang } from '../composables/useLang.js'
   color: #fff;
   background: #0066E6;
 }
+
+@media (min-width: 901px) and (max-height: 760px) {
+  .lang-toggle {
+    right: 14px;
+    min-height: 40px;
+  }
+  .lt-opt { padding: 0 7px; }
+}
 </style>

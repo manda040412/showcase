@@ -734,6 +734,43 @@ function speedLineStyle(i) {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@media (min-width: 901px) and (max-height: 760px) {
+  .topbar { height: 60px; padding: 0 150px 0 24px; }
+  .trad-logo-top { height: 36px; }
+  .topbar-left { gap: 12px; }
+  .topbar-title { font-size: 13px; }
+  .topbar-subtitle { font-size: 8px; }
+  .topbar-right { gap: 12px; }
+  .topbar-stat-val { font-size: 22px; }
+  .live-badge { padding: 6px 12px; }
+  .content { gap: 8px; transform: translateY(-4px); }
+  .trad-logo-hero { height: 54px; }
+  .logo-hero { gap: 5px; }
+  .logo-rule { gap: 8px; }
+  .logo-rule-line { width: 56px; }
+  .logo-rule-text { font-size: 9px; }
+  .eyebrow { font-size: 10px; gap: 8px; }
+  .eyebrow-line { width: 26px; }
+  .line-1, .line-2 { font-size: clamp(58px, 8vw, 94px); }
+  .subtext { font-size: 10px; }
+  .pills { gap: 5px; }
+  .pill { padding: 5px 11px; font-size: 9px; }
+  .cta-area { gap: 5px; }
+  .cta-orbit { width: 116px; height: 116px; }
+  .cta-btn { width: 72px; height: 72px; }
+  .play-icon { width: 24px; height: 24px; }
+  .cta-label { font-size: 7px; }
+  .cta-hint { font-size: 7px; }
+  .side-panel { right: 20px; padding: 16px 13px; gap: 12px; }
+  .side-val { font-size: 24px; }
+  .bottombar { height: 48px; padding: 0 24px; }
+  .bottom-logo { height: 24px; }
+  .bottom-company { font-size: 10px; }
+  .bottom-tagline, .bottom-location { font-size: 7px; }
+  .bottom-event-name { font-size: 7px; }
+  .bottom-event-year { font-size: 20px; }
+}
+
 @media (max-width: 900px) {
   .line-1, .line-2 { font-size: clamp(48px, 13vw, 80px); }
   .side-panel { display: none; }
