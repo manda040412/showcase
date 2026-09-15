@@ -52,4 +52,19 @@ import { lang, toggleLang } from '../composables/useLang.js'
   }
   .lt-opt { padding: 0 7px; }
 }
+
+@media (orientation: portrait) {
+  .lang-toggle {
+    right: 10px;
+    top: 10px;
+    transform: none;
+    min-height: 34px;
+    border-radius: 4px;
+    background: rgba(12, 28, 52, 0.9);
+  }
+  .lt-opt {
+    padding: 0 8px;
+    font-size: 9px;
+  }
+}
 </style>

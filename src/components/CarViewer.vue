@@ -207,7 +207,8 @@ let renderer, scene, camera, animId
 let car = null
 let isDragging = false, lastX = 0, prevX = 0
 let yaw = 0, yawVel = 0
-let camZ = 6.0
+let defaultCamZ = 6.0
+let camZ = defaultCamZ
 const CAM_Z_MIN = 3.0, CAM_Z_MAX = 10.0
 const CAM_Y    = 1.5
 const CAM_LOOK = new THREE.Vector3(0, 0.6, 0)
@@ -250,13 +251,17 @@ function handleChassisClick() {
     const t = Math.min((now - startTime) / duration, 1)
     camZ = startZ + (targetZ - startZ) * (t * t * t * t * t)
     if (t < 1) requestAnimationFrame(zoomStep)
-    else { emit('chassis'); setTimeout(() => { camZ = 6.0; isTransitioning = false }, 1200) }
+    else { emit('chassis'); setTimeout(() => { camZ = defaultCamZ; isTransitioning = false }, 1200) }
   }
   requestAnimationFrame(zoomStep)
 }
 
 function init() {
-  const W = window.innerWidth, H = window.innerHeight
+  const W = viewerEl.value.clientWidth, H = viewerEl.value.clientHeight
+  if (W / H < 0.75) {
+    defaultCamZ = 9.0
+    camZ = defaultCamZ
+  }
   renderer = new THREE.WebGLRenderer({ canvas: canvasRef.value, antialias: true, alpha: true })
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
   renderer.setSize(W, H)
@@ -368,7 +373,8 @@ function animate() {
   camera.position.z += (camZ-camera.position.z)*0.08
   camera.lookAt(CAM_LOOK)
   if (isReady.value) {
-    const wp = new THREE.Vector3(carHalfWidth, carMidY, 0)
+    const isPortrait = renderer.domElement.clientWidth / renderer.domElement.clientHeight < 0.75
+    const wp = new THREE.Vector3(isPortrait ? carHalfWidth * 0.72 : carHalfWidth, carMidY, 0)
     const ndc = wp.clone().project(camera)
     const W = renderer.domElement.clientWidth, H = renderer.domElement.clientHeight
     dotX.value = (ndc.x*0.5+0.5)*W; dotY.value = (-ndc.y*0.5+0.5)*H
@@ -378,7 +384,12 @@ function animate() {
 }
 
 function onWheel(e) { if (!isTransitioning) camZ = Math.max(CAM_Z_MIN, Math.min(CAM_Z_MAX, camZ+e.deltaY*0.007)) }
-function onResize() { const W=window.innerWidth,H=window.innerHeight; renderer.setSize(W,H); camera.aspect=W/H; camera.updateProjectionMatrix() }
+function onResize() {
+  const W = viewerEl.value.clientWidth, H = viewerEl.value.clientHeight
+  renderer.setSize(W, H)
+  camera.aspect = W / H
+  camera.updateProjectionMatrix()
+}
 
 let lastPinchDist = 0
 function onPointerDown(e) { if (entryActive||isTransitioning) return; isDragging=true; lastX=prevX=e.clientX??e.touches?.[0]?.clientX??0; yawVel=0 }
@@ -737,27 +748,27 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
 .deg-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: .2em; color: #7FC0FF; opacity: 0.8; }
 
 .parts-hotspot {
-  position: absolute; transform: translate(0, -50%); padding: 10px 0;
+  position: absolute; transform: translate(0, -50%); padding: 6px 0;
   display: flex; flex-direction: row; align-items: center;
   border: 0; background: transparent; cursor: pointer; z-index: 20;
 }
 .parts-target {
-  position: relative; width: 24px; height: 24px; flex-shrink: 0;
-  border: 1px solid rgba(88,174,255,.75); border-radius: 50%;
-  background: rgba(4,12,26,.38); box-shadow: 0 0 12px rgba(0,130,255,.35);
+  position: relative; width: 20px; height: 20px; flex-shrink: 0;
+  border: 1px solid rgba(88,174,255,.85); border-radius: 50%;
+  background: rgba(5,18,38,.92); box-shadow: 0 0 10px rgba(0,130,255,.42);
 }
 .parts-target::before, .parts-target::after {
   content: ''; position: absolute; background: #58AEFF; opacity: .75;
 }
-.parts-target::before { width: 6px; height: 1px; top: 11px; left: -4px; }
-.parts-target::after { width: 1px; height: 6px; top: -4px; left: 11px; }
+.parts-target::before { width: 5px; height: 1px; top: 9px; left: -3px; }
+.parts-target::after { width: 1px; height: 5px; top: -3px; left: 9px; }
 .parts-target-core {
-  position: absolute; width: 5px; height: 5px; top: 8px; left: 8px;
+  position: absolute; width: 4px; height: 4px; top: 7px; left: 7px;
   border-radius: 50%; background: #00C2FF; box-shadow: 0 0 10px #00C2FF;
 }
 .parts-connector {
-  width: 38px; height: 1px; flex-shrink: 0;
-  background: linear-gradient(90deg, #58AEFF, rgba(88,174,255,.18));
+  width: 18px; height: 1px; flex-shrink: 0;
+  background: linear-gradient(90deg, rgba(88,174,255,.2), #58AEFF);
   position: relative;
 }
 .parts-connector::after {
@@ -765,24 +776,17 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   border-radius: 50%; background: #58AEFF; box-shadow: 0 0 7px rgba(88,174,255,.8);
 }
 .parts-label {
-  position: relative; display: flex; align-items: center; gap: 10px;
-  font-family: var(--font-mono); white-space: nowrap; color: #0B1730;
-  background: #FFFFFF;
-  padding: 7px 12px 7px 9px; border: 1px solid rgba(255,255,255,.9);
-  border-radius: 3px; box-shadow: 0 3px 14px rgba(0,0,0,.24);
-  transition: color .2s, background .2s, border-color .2s, box-shadow .2s, transform .2s;
+  position: relative; display: flex; align-items: center; gap: 7px;
+  font-family: var(--font-mono); white-space: nowrap; color: #DCEAFF;
+  background: rgba(5,14,30,.92);
+  padding: 5px 8px; border: 1px solid rgba(88,174,255,.48);
+  border-radius: 5px; box-shadow: 0 4px 14px rgba(0,0,0,.38);
 }
-.parts-index { font-size: 8px; letter-spacing: .12em; color: #00C2FF; }
-.parts-label-text { font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+.parts-index { font-size: 7px; letter-spacing: .1em; color: #58AEFF; }
+.parts-label-text { font-size: 8px; font-weight: 700; letter-spacing: .08em; }
 .parts-hotspot:hover .parts-label,
-.parts-hotspot:focus-visible .parts-label {
-  background: rgba(0,102,230,.72); border-color: #58AEFF; color: white;
-  box-shadow: 0 0 18px rgba(0,145,255,.4);
-  transform: translateX(3px);
-}
-.parts-hotspot:hover .parts-index,
-.parts-hotspot:focus-visible .parts-index { color: #FFFFFF; }
-.parts-hotspot:hover .parts-target { box-shadow: 0 0 0 5px rgba(0,194,255,.1), 0 0 18px rgba(0,194,255,.8); }
+.parts-hotspot:focus-visible .parts-label { background: rgba(5,14,30,.92); border-color: rgba(88,174,255,.48); color: #DCEAFF; box-shadow: 0 4px 14px rgba(0,0,0,.38); }
+.parts-hotspot:hover .parts-target { box-shadow: 0 0 10px rgba(0,130,255,.42); }
 .parts-hotspot:focus-visible { outline: 1px solid #58AEFF; outline-offset: 5px; }
 
 .bottom-hud {
@@ -838,5 +842,43 @@ onUnmounted(() => { cancelAnimationFrame(animId); renderer?.dispose(); window.re
   .parts-label { padding: 8px 10px; }
   .bottom-hud { height: 40px; padding: 0 10px; }
   .hud-item { font-size: 8px; }
+}
+@media (orientation: portrait) {
+  .loading-inner {
+    width: min(230px, calc(100% - 44px));
+    gap: 11px;
+    padding: 21px 18px 20px;
+    border-radius: 17px;
+  }
+  .loading-ring,
+  .loading-svg {
+    width: 52px;
+    height: 52px;
+  }
+  .loading-pct { font-size: 13px; }
+  .loading-text {
+    font-size: 9px;
+    letter-spacing: .16em;
+  }
+  .loading-bar-wrap { width: 140px; }
+
+  .topbar { height: 58px; padding: 0 66px 0 10px; }
+  .topbar-left { gap: 6px; }
+  .trad-logo-bar { height: 25px; }
+  .topbar-brand { font-size: 10px; letter-spacing: .03em; }
+  .topbar-sub, .tb-sep, .left-sidebar, .right-sidebar { display: none; }
+  .topbar-right { gap: 3px; }
+  .tab { min-height: 38px; padding: 5px 6px; font-size: 7px; letter-spacing: .04em; }
+  .topbar .btn-back { display: none !important; }
+  .parts-hotspot { transform: translate(-100%, -50%); flex-direction: row-reverse; }
+  .parts-target { width: 20px; height: 20px; }
+  .parts-target::before { top: 9px; }
+  .parts-target::after { left: 9px; }
+  .parts-target-core { top: 6px; left: 6px; }
+  .parts-connector { width: 12px; background: linear-gradient(90deg, rgba(88,174,255,.18), #58AEFF); }
+  .parts-label { padding: 5px 7px; gap: 5px; }
+  .parts-label-text { font-size: 7px; letter-spacing: .06em; }
+  .bottom-hud { height: 42px; padding: 0 14px; }
+  .hud-center, .hud-left .hud-sep, .hud-left .hud-item:nth-child(2) { display: none; }
 }
 </style>

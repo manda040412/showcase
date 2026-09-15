@@ -31,7 +31,7 @@
       <div class="hud-corner hud-tl"><div class="hud-h"></div><div class="hud-v"></div><span class="hud-lbl">{{ t('chassis_view') }}</span></div>
       <div class="hud-corner hud-tr"><div class="hud-h"></div><div class="hud-v"></div><span class="hud-lbl">{{ hotspots.length }} {{ t('parts_count_suffix') }}</span></div>
       <div class="hud-corner hud-bl"><div class="hud-h"></div><div class="hud-v"></div><span class="hud-lbl">{{ t('zoom_prefix') }}{{ Math.round(scale * 100) }}%</span></div>
-      <div class="hud-corner hud-br"><div class="hud-h"></div><div class="hud-v"></div><span class="hud-lbl">{{ t('drag_pan') }}</span></div>
+      <div class="hud-corner hud-br"><div class="hud-h"></div><div class="hud-v"></div><span   class="hud-lbl">{{ t('drag_pan') }}</span></div>
 
       <div class="topbar">
         <div class="topbar-left">
@@ -51,7 +51,6 @@
         <div class="topbar-right">
           <button class="tab" @click="$emit('exterior')">{{ t('tab_exterior') }}</button>
           <button class="tab tab--active">{{ t('tab_chassis') }}</button>
-          <button class="btn-back" @click="$emit('back')">{{ t('btn_back_short') }}</button>
         </div>
       </div>
 
@@ -128,13 +127,14 @@
             </div>
 
             <div v-for="(hs, i) in hotspots" :key="i"
+              v-if="!isGroupedFollower(i)"
               class="hotspot" :class="{ active: activeHs === i, 'hotspot--empty': !hs.brandVariants || !hs.brandVariants.length }"
-              :style="{ left: hs.x + '%', top: hs.y + '%' }"
-              @click.stop="openPopup(i)">
+              :style="hotspotStyle(i)"
+              @click.stop="handleHotspotClick(i)">
               <div class="hs-pulse hs-p1"></div>
               <div class="hs-pulse hs-p2"></div>
               <div class="hs-core">
-                <div class="hs-num">{{ String(i + 1).padStart(2, '0') }}</div>
+                <div class="hs-num">{{ hotspotNumber(i) }}</div>
               </div>
               <div class="hs-tag" :class="hs.labelDir || 'right'">
                 <span class="hs-tag-line"></span>
@@ -148,6 +148,21 @@
           </div>
         </div>
       </div>
+
+      <Transition name="popup">
+        <div v-if="choicePair" class="part-choice-overlay" @click.self="choicePair = null">
+          <div class="part-choice-card">
+            <span class="part-choice-title">{{ t('part_list') }}</span>
+            <span class="part-choice-sub">PILIH NOMOR PART</span>
+            <div class="part-choice-buttons">
+              <button v-for="index in choicePair" :key="index" class="part-choice-btn" @click="selectGroupedPart(index)">
+                {{ String(index + 1).padStart(2, '0') }}
+              </button>
+            </div>
+            <button class="part-choice-close" @click="choicePair = null">×</button>
+          </div>
+        </div>
+      </Transition>
 
       <Transition name="popup">
         <div v-if="activeHs !== null" class="popup-overlay" @click.self="closePopup">
@@ -185,9 +200,19 @@
                 </div>
               </div>
 
-              <div class="rd-main">
+              <div class="rd-tabs" role="tablist" aria-label="Part information">
+                <button class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'model' }" @click="popupTab = 'model'">3D MODEL</button>
+                <button v-if="specifications.length" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'specs' }" @click="popupTab = 'specs'">SPESIFIKASI</button>
+                <button v-if="currentVariant.profile" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'brand' }" @click="popupTab = 'brand'">PROFIL MEREK</button>
+                <button v-if="productHighlights.length || currentVariant.profile?.advantages?.length" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'highlights' }" @click="popupTab = 'highlights'">HIGHLIGHT</button>
+              </div>
 
-                <div class="rd-specs" v-if="specifications.length">
+              <div class="rd-main" :class="{
+                'rd-main--highlights': popupTab === 'highlights',
+                'rd-main--brand': popupTab === 'brand'
+              }">
+
+                <div class="rd-specs" v-if="popupTab === 'specs' && specifications.length">
                   <span class="rd-panel-title">{{ bl({ en: 'Specifications', id: 'Spesifikasi' }) }}</span>
                   <div class="rd-specs-list">
                     <div v-for="(spec, si) in specifications" :key="si" class="rd-spec-item">
@@ -200,7 +225,7 @@
 
                 <div class="rd-stage">
 
-                  <div v-if="productHighlights.length" class="rd-features">
+                  <div v-if="popupTab === 'highlights' && productHighlights.length" class="rd-features">
                     <span class="rd-features-label">{{ bl({ en: 'Product Highlights', id: 'Highlight Produk' }) }} ///</span>
                     <div class="rd-features-row">
                       <div v-for="(ph, pi) in productHighlights" :key="'f' + pi" class="rd-feature">
@@ -212,7 +237,7 @@
                     </div>
                   </div>
 
-                  <div class="rd-stage-visual">
+                  <div v-if="popupTab === 'model'" class="rd-stage-visual">
 
                     <Transition name="hero-swap" mode="out-in">
                       <PartModelViewer
@@ -244,7 +269,7 @@
                 </div>
 
                 <Transition name="content-swap" mode="out-in">
-                  <div :key="activeBrand" class="rd-profile" v-if="currentVariant.profile">
+                  <div :key="activeBrand" class="rd-profile" v-if="popupTab === 'brand' && currentVariant.profile">
 
                     <div class="rd-profile-card">
                       <div class="rd-profile-card-header">
@@ -306,7 +331,7 @@
                 </Transition>
               </div>
 
-              <div class="rd-advantages" v-if="currentVariant.profile && currentVariant.profile.advantages && currentVariant.profile.advantages.length">
+              <div class="rd-advantages" v-if="popupTab === 'highlights' && currentVariant.profile && currentVariant.profile.advantages && currentVariant.profile.advantages.length">
                 <span class="rd-panel-title rd-panel-title--boxed">{{ t('advantages') }} ///</span>
                 <div class="rd-adv-row">
                   <div v-for="(adv, ai) in currentVariant.profile.advantages" :key="ai" class="rd-adv-col">
@@ -425,11 +450,14 @@ const panY     = ref(0)
 const activeHs = ref(null)
 const activeBrand = ref(0)
 const videoExpanded = ref(false)
+const choicePair = ref(null)
+const popupTab = ref('model')
 
 const SCALE_MIN    = 0.4
 const SCALE_MAX    = 4.0
 const ZOOM_HOTSPOT = 2.2
 const BASE_SCALE   = 0.85
+let portraitBaseScale = BASE_SCALE
 
 let isPanning = false
 let lastPanX  = 0
@@ -1320,10 +1348,46 @@ function preloadAllPartImages() {
   })
 }
 
+const HOTSPOT_GROUPS = [
+  [7, 8],
+  [11, 12],
+]
+const GROUP_FOLLOWERS = new Set(HOTSPOT_GROUPS.flatMap(([, follower]) => [follower]))
+
+function hotspotGroup(index) {
+  return HOTSPOT_GROUPS.find(group => group.includes(index))
+}
+function isGroupedFollower(index) {
+  return GROUP_FOLLOWERS.has(index)
+}
+function hotspotNumber(index) {
+  const group = hotspotGroup(index)
+  return group ? group.map(item => String(item + 1).padStart(2, '0')).join('/') : String(index + 1).padStart(2, '0')
+}
+function hotspotStyle(index) {
+  const group = hotspotGroup(index)
+  if (!group) return { left: hotspots[index].x + '%', top: hotspots[index].y + '%' }
+  const items = group.map(item => hotspots[item])
+  return {
+    left: (items.reduce((sum, item) => sum + item.x, 0) / items.length) + '%',
+    top: (items.reduce((sum, item) => sum + item.y, 0) / items.length) + '%',
+  }
+}
+function handleHotspotClick(index) {
+  const group = hotspotGroup(index)
+  if (group) choicePair.value = group
+  else openPopup(index)
+}
+function selectGroupedPart(index) {
+  choicePair.value = null
+  openPopup(index)
+}
+
 function openPopup(i) {
   const hs = hotspots[i]
   if (!hs.brandVariants || hs.brandVariants.length === 0) return
   activeBrand.value = 0
+  popupTab.value = 'model'
   const img = imgRef.value
   if (!img) { activeHs.value = i; return }
   const imgW = img.clientWidth, imgH = img.clientHeight
@@ -1332,7 +1396,7 @@ function openPopup(i) {
   scale.value = ZOOM_HOTSPOT
   setTimeout(() => { activeHs.value = i }, 300)
 }
-function closePopup()  { activeHs.value = null; activeBrand.value = 0; videoExpanded.value = false; scale.value = BASE_SCALE; panX.value = 0; panY.value = 0 }
+function closePopup()  { activeHs.value = null; activeBrand.value = 0; popupTab.value = 'model'; videoExpanded.value = false; scale.value = portraitBaseScale; panX.value = 0; panY.value = 0 }
 function prevPart() {
   let i = activeHs.value - 1
   while (i >= 0 && (!hotspots[i].brandVariants || hotspots[i].brandVariants.length === 0)) i--
@@ -1345,7 +1409,7 @@ function nextPart() {
 }
 function zoomIn()      { scale.value = Math.min(SCALE_MAX, scale.value * 1.2) }
 function zoomOut()     { scale.value = Math.max(SCALE_MIN, scale.value / 1.2) }
-function resetView()   { scale.value = BASE_SCALE; panX.value = 0; panY.value = 0 }
+function resetView()   { scale.value = portraitBaseScale; panX.value = 0; panY.value = 0 }
 function switchBrand(i) { activeBrand.value = i }
 
 function onWheel(e) {
@@ -1409,6 +1473,10 @@ function getPointerDistance() {
 function onImgLoad()     {}
 
 onMounted(() => {
+  if (window.innerWidth / window.innerHeight < 0.75) {
+    portraitBaseScale = 0.7
+    scale.value = portraitBaseScale
+  }
   window.addEventListener('mousemove', updateCursor)
   rafCursor = requestAnimationFrame(animateCursorRing)
 
@@ -1661,16 +1729,15 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   }
   .chassis-img { display: block; max-width: 1020px; width: 68vw; height: auto; border-radius: 12px; pointer-events: none; filter: drop-shadow(0 30px 60px rgba(0,0,0,0.55)) drop-shadow(0 0 40px rgba(0,120,255,0.12)); }
 
-  .hotspot { position: absolute; width: 52px; height: 52px; padding: 0; border: 0; background: transparent; color: inherit; appearance: none; transform: translate(-50%,-50%); z-index: 10; cursor: pointer; touch-action: manipulation; }
-  .hs-pulse { position: absolute; border-radius: 50%; border: 1px solid rgba(51,153,255,0.55); top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; }
-  .hs-p1 { width: 30px; height: 30px; animation: hs-pulse 2.6s ease-out infinite; }
-  .hs-p2 { width: 30px; height: 30px; animation: hs-pulse 2.6s ease-out infinite 1.3s; }
+  .hotspot { position: absolute; width: 30px; height: 30px; padding: 0; border: 0; background: transparent; color: inherit; appearance: none; transform: translate(-50%,-50%); z-index: 10; cursor: pointer; touch-action: manipulation; }
+  .hs-pulse { position: absolute; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(51,153,255,0.38); top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; opacity: .55; }
+  .hs-p1, .hs-p2 { animation: none; }
   @keyframes hs-pulse { 0% { transform: translate(-50%,-50%) scale(.4); opacity: .9; } 100% { transform: translate(-50%,-50%) scale(2.4); opacity: 0; } }
-  .hs-core { position: absolute; top: 50%; left: 50%; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(145deg, #0088FF, #0044BB); border: 2px solid rgba(150,205,255,0.9); display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); box-shadow: 0 0 14px rgba(51,153,255,0.6), 0 2px 8px rgba(0,0,0,0.4); transition: transform .2s, box-shadow .2s, border-color .2s, background .2s; }
-  .hotspot:hover .hs-core, .hotspot.active .hs-core { transform: translate(-50%, -50%) scale(1.3); background: linear-gradient(145deg, #3399FF, #0066E6); border-color: #ffffff; box-shadow: 0 0 22px rgba(51,153,255,0.85), 0 4px 14px rgba(0,0,0,0.4); }
+  .hs-core { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border-radius: 50%; background: #0066E6; border: 2px solid rgba(150,205,255,0.9); display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); box-shadow: 0 0 8px rgba(51,153,255,0.5), 0 2px 6px rgba(0,0,0,0.4); transition: none; }
+  .hotspot:hover .hs-core, .hotspot.active .hs-core { transform: translate(-50%, -50%); background: #0066E6; border-color: rgba(150,205,255,0.9); box-shadow: 0 0 8px rgba(51,153,255,0.5), 0 2px 6px rgba(0,0,0,0.4); }
   .hs-num { font-size: 7px; font-weight: 800; color: #ffffff; letter-spacing: -.02em; line-height: 1; transition: color .2s; }
   .hotspot:hover .hs-num, .hotspot.active .hs-num { color: white; }
-  .hotspot:active .hs-core { transform: translate(-50%, -50%) scale(1.15); }
+  .hotspot:active .hs-core { transform: translate(-50%, -50%); }
   .hs-tag { position: absolute; top: 50%; display: flex; align-items: center; gap: 0; pointer-events: none; opacity: 0; transition: opacity .2s, transform .2s; }
   .hs-tag.right { left: 26px; transform: translateY(-50%); }
   .hs-tag.left  { right: 26px; transform: translateY(-50%); flex-direction: row-reverse; }
@@ -1762,6 +1829,36 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .rd-brand-select { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; flex-shrink: 0; }
   .rd-brand-select-label { font-family: var(--font-mono, monospace); font-size: 9.5px; letter-spacing: .2em; color: rgba(150,195,255,.55); text-transform: uppercase; }
   .rd-brand-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
+  .rd-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 8px;
+    margin: 0 0 14px;
+    border: 1px solid rgba(80,160,255,0.16);
+    border-radius: 10px;
+    background: rgba(8,14,26,0.58);
+    flex-shrink: 0;
+  }
+  .rd-tab {
+    min-height: 36px;
+    padding: 7px 12px;
+    border: 1px solid rgba(80,160,255,0.2);
+    border-radius: 6px;
+    background: rgba(10,18,32,0.6);
+    color: rgba(190,215,245,.7);
+    font-family: var(--font-mono, monospace);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    touch-action: manipulation;
+  }
+  .rd-tab--active {
+    color: #fff;
+    border-color: #3399FF;
+    background: #0066E6;
+    box-shadow: 0 0 12px rgba(0,102,230,.3);
+  }
   .rd-brand-tab {
     position: relative; display: flex; align-items: center; gap: 6px;
     padding: 9px 16px; border-radius: 10px; min-width: 70px;
@@ -2114,6 +2211,231 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     .statusbar { height: 40px; padding: 0 10px; }
     .status-center, .status-left .dim, .status-right .dim { display: none; }
   }
+  @media (orientation: portrait) {
+    .topbar { height: 58px; padding: 0 66px 0 10px; }
+    .topbar-left { gap: 7px; }
+    .topbar-text-group, .topbar-sub, .topbar-center { display: none; }
+    .trad-logo-bar { height: 28px; }
+    .topbar-right { gap: 4px; }
+    .tab { min-height: 40px; padding: 6px 9px; font-size: 8px; }
+
+    .left-sidebar {
+      display: flex;
+      left: 0;
+      top: 58px;
+      right: 0;
+      bottom: auto;
+      width: 100%;
+      height: 168px;
+      flex-direction: column;
+      border-right: 0;
+      border-bottom: 1px solid rgba(80,160,255,0.22);
+      box-shadow: 0 4px 22px rgba(0,0,0,0.35);
+    }
+    .left-sidebar.hidden { transform: translateY(-100%); }
+    .sidebar-header {
+      flex: 0 0 25px;
+      gap: 6px;
+      padding: 5px 12px 3px;
+      border-bottom: 1px solid rgba(80,160,255,0.12);
+    }
+    .sidebar-dot { width: 5px; height: 5px; }
+    .sidebar-title { font-size: 8px; letter-spacing: .14em; }
+    .sidebar-list {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: repeat(4, 30px);
+      grid-auto-flow: row;
+      width: 100%;
+      flex: 1;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      padding: 4px 8px 5px;
+      gap: 5px;
+      scrollbar-width: thin;
+    }
+    .sidebar-list::-webkit-scrollbar { height: 3px; width: auto; }
+    .sidebar-item {
+      width: 100%;
+      min-width: 0;
+      min-height: 0;
+      height: 30px;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 6px;
+      border-left: 0;
+      border-bottom: 2px solid transparent;
+      border-radius: 4px;
+      background: rgba(10,18,32,0.45);
+    }
+    .sidebar-item--active { border-left: 0; border-bottom-color: #3399FF; }
+    .sidebar-num { width: auto; padding-top: 0; font-size: 9px; }
+    .sidebar-name { max-width: 100%; white-space: normal; font-size: 7px; line-height: 1.05; }
+    .sidebar-brands { display: none; }
+    .canvas-area { inset: 226px 0 42px 0 !important; }
+    .zoom-controls { right: 14px; top: auto; bottom: 54px; transform: none; flex-direction: row; padding: 6px; gap: 5px; }
+    .zoom-track, .zoom-divider, .zoom-pct { display: none; }
+    .zoom-btn { width: 42px; height: 42px; }
+    .stage { transform: translateY(3%); }
+    .chassis-img { width: 88vw; max-width: 900px; }
+    .hud-tl, .hud-tr { top: 170px; }
+    .hud-tl, .hud-bl { left: 8px; }
+    .hud-tr, .hud-br { right: 8px; }
+    .hud-bl, .hud-br { bottom: 50px; }
+    .hotspot { width: 30px; height: 30px; }
+    .hs-p1, .hs-p2 { width: 26px; height: 26px; }
+    .hs-core { width: 18px; height: 18px; }
+    .hs-num { font-size: 6px; }
+    .part-choice-overlay {
+      position: absolute;
+      inset: 226px 0 42px;
+      z-index: 45;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(3,6,14,0.42);
+      backdrop-filter: blur(4px);
+    }
+    .part-choice-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      min-width: 170px;
+      padding: 16px 22px 18px;
+      border: 1px solid rgba(80,160,255,0.4);
+      border-radius: 10px;
+      background: rgba(5,12,26,0.94);
+      box-shadow: 0 10px 34px rgba(0,0,0,0.55), 0 0 24px rgba(0,100,230,0.18);
+    }
+    .part-choice-title { color: #8FCBFF; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .part-choice-sub { color: rgba(190,215,245,.6); font-size: 7px; letter-spacing: .12em; }
+    .part-choice-buttons { display: flex; gap: 10px; margin-top: 4px; }
+    .part-choice-btn { min-width: 52px; min-height: 42px; border: 1px solid rgba(80,160,255,.4); border-radius: 5px; background: #0066E6; color: #fff; font-size: 12px; font-weight: 800; }
+    .part-choice-btn:hover { background: #1685ff; }
+    .part-choice-close { position: absolute; top: 5px; right: 7px; border: 0; background: transparent; color: rgba(210,228,255,.7); font-size: 18px; line-height: 1; }
+    .hs-tag { display: none; }
+    .statusbar { height: 42px; padding: 0 14px; }
+    .status-center, .status-left .dim, .status-right .dim { display: none; }
+
+    .popup-overlay { inset: 58px 0 42px; padding: 6px; align-items: stretch; }
+    .popup-card--redesign { width: 100%; height: 100%; max-height: none; border-radius: 12px; }
+    .rd-layout { padding: 12px; overflow-y: auto; }
+    .rd-header { margin-bottom: 8px; }
+    .rd-index { font-size: 30px; }
+    .rd-eyebrow { font-size: 8px; }
+    .rd-title { font-size: 20px; }
+    .rd-tabs { margin-bottom: 10px; padding: 6px; gap: 4px; }
+    .rd-tab { min-height: 34px; padding: 6px 8px; font-size: 7px; }
+    .rd-main { flex-direction: column; gap: 8px; padding-right: 0; overflow: visible; }
+    .rd-main--highlights {
+      display: block;
+      flex: 0 0 auto;
+      min-height: 0;
+      margin-bottom: 10px;
+      overflow: visible;
+    }
+    .rd-main--highlights .rd-stage {
+      display: block;
+      width: 100%;
+      min-height: 0;
+    }
+    .rd-main--highlights .rd-features {
+      width: 100%;
+      margin: 0;
+      padding: 0 2px 10px;
+    }
+    .rd-main--highlights .rd-features-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 8px;
+      overflow: visible;
+    }
+    .rd-main--highlights .rd-feature {
+      width: auto;
+      min-width: 0;
+      gap: 5px;
+    }
+    .rd-main--highlights .rd-feature-label {
+      font-size: 7px;
+      line-height: 1.25;
+    }
+    .rd-main--brand {
+      display: block;
+      flex: 0 0 auto;
+      min-height: 0;
+      margin-bottom: 10px;
+      overflow: visible;
+    }
+    .rd-main--brand .rd-stage { display: none; }
+    .rd-main--brand .rd-profile {
+      position: static;
+      display: flex;
+      width: 100%;
+      max-height: none;
+      overflow: visible;
+      padding: 0 2px;
+      gap: 14px;
+    }
+    .rd-main--brand .rd-profile-card {
+      padding: 14px;
+      border-radius: 12px;
+    }
+    .rd-main--brand .rd-profile-card-header { margin-bottom: 12px; }
+    .rd-main--brand .rd-profile-brand-row { margin-bottom: 12px; }
+    .rd-main--brand .rd-profile-facts { gap: 12px; }
+    .rd-main--brand .rd-section { padding: 0 2px; }
+    .rd-main--brand .rd-section .rd-panel-title { margin-bottom: 9px; padding-bottom: 7px; }
+    .rd-main--brand .rd-oem-list { gap: 8px; }
+    .rd-main--brand .rd-icon-slot--oem { width: 44px; height: 44px; }
+    .rd-main--brand .rd-spec-block-text { font-size: 11px; line-height: 1.4; }
+    .rd-main--brand .rd-timeline { gap: 6px; }
+    .rd-main--brand .rd-timeline-label { font-size: 8px; }
+    .rd-stage { order: -1; width: 100%; }
+    .rd-stage-visual { width: 100%; height: 230px; min-height: 230px; max-height: 230px; aspect-ratio: auto; }
+    .rd-stage-model {
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+    }
+    .rd-stage-img { max-width: 72%; max-height: 78%; }
+    .rd-stage-visual > .rd-stage-model {
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+    }
+    .rd-specs, .rd-profile { width: 100%; position: static; max-height: none; overflow: visible; padding: 12px; }
+    .rd-features { margin-bottom: 0; }
+    .rd-features-row { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; padding-bottom: 4px; }
+    .rd-feature { flex: 0 0 112px; width: 112px; gap: 5px; }
+    .rd-feature .rd-icon-slot--lg { width: 38px; height: 38px; border-radius: 10px; }
+    .rd-feature-label { font-size: 7px; line-height: 1.2; }
+    .rd-advantages {
+      position: relative;
+      clear: both;
+      margin: 0 0 10px;
+      padding: 12px;
+      overflow: visible;
+    }
+    .rd-adv-row { flex-wrap: wrap; gap: 10px 0; }
+    .rd-adv-col { flex: 1 1 45%; padding: 0 5px; }
+    .rd-adv-label { font-size: 8px; }
+    .rd-nav { gap: 5px; }
+    .rd-nav-btn, .rd-nav-cta { min-height: 42px; padding: 9px 8px; font-size: 8px; }
+    .rd-main--brand + .rd-nav {
+      position: relative;
+      z-index: 3;
+      margin-top: 0;
+      padding-top: 4px;
+      background: #05070D;
+    }
+    .rd-stage:has(.rd-features) { display: block; }
+    .rd-stage:has(.rd-features) .rd-stage-visual { display: none; }
+    .rd-stage:has(.rd-features) { order: 0; }
+  }
   @media (max-height: 800px) and (min-width: 861px) {
     .popup-overlay { align-items: stretch; padding-top: 0; padding-bottom: 0; }
     .popup-card--redesign { height: 100%; max-height: 100%; }
@@ -2126,7 +2448,7 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     .rd-specs-list { gap: 10px; }
     .rd-stage { justify-content: flex-start; }
     .rd-stage-visual { width: 100%; height: 220px; min-height: 220px; max-height: 220px; aspect-ratio: auto; }
-    .rd-advantages { padding: 10px 14px 12px; margin-bottom: 8px; }
+    .rd-advantages { padding: 10px 14px 12px; margin: 0 0 8px; }
     .rd-panel-title--boxed { margin-bottom: 8px; }
     .rd-icon-slot--adv { width: 36px; height: 36px; }
     .rd-adv-col { gap: 6px; padding: 0 6px; }

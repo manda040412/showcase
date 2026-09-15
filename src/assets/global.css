@@ -37,6 +37,13 @@ html, body, #app {
   -webkit-font-smoothing: antialiased;
 }
 
+#app {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #03060E;
+}
+
 button {
   font-family: var(--font-body);
   cursor: pointer;

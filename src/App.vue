@@ -72,10 +72,16 @@ function goToChassis() {
 
 <style scoped>
 #wrapper {
-  width: 100vw;
-  height: 100vh;
+  width: min(100vw, calc(100vh * 61 / 106.5));
+  height: min(100vh, calc(100vw * 106.5 / 61));
+  aspect-ratio: 61 / 106.5;
   position: relative;
   overflow: hidden;
+  background: #03060E;
+}
+
+@media (orientation: portrait) {
+  #wrapper { --topbar-h: 64px !important; }
 }
 
 .transition-flash {

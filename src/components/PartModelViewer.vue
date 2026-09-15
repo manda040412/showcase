@@ -33,8 +33,9 @@ let rotX = 0.12, rotY = 0.5
 let velX = 0, velY = 0
 
 let distance = 2.0
+let resetDistance = 2.0
 const DEFAULT_DISTANCE   = 2.0
-const ZOOM_MAX_DISTANCE  = 6
+const ZOOM_MAX_DISTANCE  = 20
 const FALLBACK_MIN_DIST  = 1.6
 let safeMinDistance = FALLBACK_MIN_DIST
 
@@ -43,7 +44,8 @@ function init() {
   const h = wrapEl.value.clientHeight || 400
 
   scene  = new THREE.Scene()
-  camera = new THREE.PerspectiveCamera(32, w / h, 0.1, 100)
+  const portraitFov = w / h < 0.9 ? 38 : 32
+  camera = new THREE.PerspectiveCamera(portraitFov, w / h, 0.1, 100)
 
   renderer = new THREE.WebGLRenderer({ canvas: canvasEl.value, antialias: true, alpha: true })
   renderer.setSize(w, h)
@@ -179,6 +181,7 @@ function loadModel(src) {
 
       const cylinderRadius = 0.5 * Math.sqrt(scaledSizeX * scaledSizeX + scaledSizeZ * scaledSizeZ)
       const halfHeight = scaledSizeY / 2
+      const safeSphereRadius = sphereRadius * scaleFactor
 
       const vFovRad = THREE.MathUtils.degToRad(camera.fov)
       const canvasAspect = camera.aspect || 1
@@ -186,16 +189,18 @@ function loadModel(src) {
 
       const distForHeight = halfHeight / Math.tan(vFovRad / 2)
       const distForWidth  = cylinderRadius / Math.tan(hFovRad / 2)
+      const distForSphere = safeSphereRadius / Math.sin(Math.min(vFovRad, hFovRad) / 2)
 
-      const ZOOM_MARGIN = 1.08
-      const rawMinDist = Math.max(distForHeight, distForWidth)
+      const ZOOM_MARGIN = 1.04
+      const rawMinDist = Math.max(distForHeight, distForWidth, distForSphere)
       safeMinDistance = Math.max(0.4, rawMinDist * ZOOM_MARGIN)
 
       console.log('[PartModelViewer] cylinder radius / halfHeight (scaled):', cylinderRadius.toFixed(3), halfHeight.toFixed(3))
       console.log('[PartModelViewer] safeMinDistance:', safeMinDistance.toFixed(3))
 
-      const zoom = Math.max(0.5, Math.min(1, props.cameraZoom))
-      distance = Math.max(safeMinDistance * zoom, Math.min(DEFAULT_DISTANCE * zoom, ZOOM_MAX_DISTANCE))
+      const zoom = Math.max(1, Math.min(1.15, props.cameraZoom))
+      resetDistance = Math.max(safeMinDistance * 1.08, Math.min(DEFAULT_DISTANCE * zoom, ZOOM_MAX_DISTANCE))
+      distance = resetDistance
 
       if (FORCE_DEBUG_MATERIAL) {
         forceDebugMaterial(model)
@@ -265,6 +270,9 @@ function onWheel(e) {
   e.preventDefault()
   distance = Math.max(safeMinDistance, Math.min(ZOOM_MAX_DISTANCE, distance + e.deltaY * 0.0025))
 }
+function zoomIn() { distance = Math.max(safeMinDistance, distance / 1.16) }
+function zoomOut() { distance = Math.min(ZOOM_MAX_DISTANCE, distance * 1.16) }
+function resetZoom() { distance = resetDistance }
 
 watch(() => props.src, (newSrc) => {
   if (renderer && newSrc) loadModel(newSrc)
@@ -273,6 +281,8 @@ watch(() => props.src, (newSrc) => {
 watch(() => [props.tintColor, props.metalness, props.roughness], () => {
   if (model && !FORCE_DEBUG_MATERIAL) applyTint(model, props.src)
 })
+
+defineExpose({ zoomIn, zoomOut, resetZoom })
 
 onMounted(() => {
   init()
@@ -299,4 +309,12 @@ canvas { display: block; width: 100%; height: 100%; }
 .pmv-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 .pmv-spinner { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(80,160,255,0.25); border-top-color: #3399FF; animation: pmv-spin 0.8s linear infinite; }
 @keyframes pmv-spin { to { transform: rotate(360deg); } }
+
+@media (orientation: portrait) {
+  .pmv-spinner {
+    width: 18px;
+    height: 18px;
+    border-width: 1.5px;
+  }
+}
 </style> 

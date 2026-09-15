@@ -798,4 +798,76 @@ function speedLineStyle(i) {
   .bottom-company { font-size: 8px; }
   .bottom-tagline { display: none; }
 }
+
+@media (orientation: portrait) {
+  .topbar {
+    height: 64px;
+    padding: 0 14px;
+  }
+  .topbar-left { gap: 12px; }
+  .trad-logo-top { height: 34px; }
+  .topbar-text-group, .topbar-stat, .topbar-div { display: none; }
+  .topbar-right { display: none; }
+
+  .content {
+    width: 100%;
+    padding: 0 14px;
+    gap: 7px;
+    transform: translateY(-1vh);
+  }
+  .logo-hero { gap: 4px; }
+  .trad-logo-hero { width: min(210px, 54vw); height: auto; }
+  .logo-rule { gap: 6px; max-width: 100%; }
+  .logo-rule-line { width: clamp(20px, 8vw, 44px); }
+  .logo-rule-text { font-size: 7px; letter-spacing: .15em; }
+  .eyebrow { font-size: 8px; letter-spacing: .12em; gap: 6px; }
+  .eyebrow-line { width: 18px; }
+  .line-1, .line-2 { font-size: clamp(36px, 11.5vw, 64px); }
+  .subtext {
+    max-width: 280px;
+    font-size: 8px;
+    line-height: 1.35;
+  }
+  .pills { max-width: 320px; gap: 4px; }
+  .pill { padding: 5px 7px; font-size: 7px; letter-spacing: .06em; }
+  .cta-area { gap: 4px; }
+  .cta-orbit { width: 116px; height: 116px; }
+  .cta-btn { width: 72px; height: 72px; gap: 3px; }
+  .play-icon { width: 23px; height: 23px; }
+  .cta-label { font-size: 6px; }
+  .cta-hint { font-size: 6px; letter-spacing: .15em; }
+
+  .side-panel {
+    right: auto;
+    left: 50%;
+    top: auto;
+    bottom: 56px;
+    transform: translateX(-50%);
+    flex-direction: row;
+    gap: 12px;
+    padding: 7px 9px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+  .side-sep { width: 1px; height: 25px; }
+  .side-val { font-size: 17px; }
+  .side-lbl { font-size: 6px; letter-spacing: .1em; }
+
+  .bottombar {
+    height: 48px;
+    padding: 0 12px;
+  }
+  .bottom-logo { height: 20px; }
+  .bottom-company { font-size: 7px; letter-spacing: .07em; }
+  .bottom-tagline, .bottom-c { display: none; }
+  .bottom-r { margin-left: auto; }
+  .bottom-version { font-size: 7px; }
+
+  .h-accent--top { top: 64px; }
+  .scan-dot--top { top: 62px; }
+  .h-accent--bottom { bottom: 48px; }
+  .scan-dot--bottom { bottom: 46px; }
+  .hud-tl, .hud-tr { top: 76px; }
+  .hud-bl, .hud-br { bottom: 58px; }
+}
 </style>
