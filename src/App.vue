@@ -81,7 +81,7 @@ function goToChassis() {
 }
 
 @media (orientation: portrait) {
-  #wrapper { --topbar-h: 64px !important; }
+  #wrapper { --topbar-h: 58px !important; }
 }
 
 .transition-flash {
