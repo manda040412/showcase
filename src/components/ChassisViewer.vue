@@ -204,12 +204,14 @@
                 <button class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'model' }" @click="popupTab = 'model'">3D MODEL</button>
                 <button v-if="specifications.length" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'specs' }" @click="popupTab = 'specs'">SPESIFIKASI</button>
                 <button v-if="currentVariant.profile" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'brand' }" @click="popupTab = 'brand'">PROFIL MEREK</button>
-                <button v-if="productHighlights.length || currentVariant.profile?.advantages?.length" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'highlights' }" @click="popupTab = 'highlights'">HIGHLIGHT</button>
+                <button v-if="advantagesList.length" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'advantages' }" @click="popupTab = 'advantages'">KEUNGGULAN</button>
+                <button v-if="productHighlights.length" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'highlights' }" @click="popupTab = 'highlights'">HIGHLIGHT</button>
               </div>
 
               <div class="rd-main" :class="{
                 'rd-main--highlights': popupTab === 'highlights',
-                'rd-main--brand': popupTab === 'brand'
+                'rd-main--brand': popupTab === 'brand',
+                'rd-main--advantages': popupTab === 'advantages'
               }">
 
                 <div class="rd-specs" v-if="popupTab === 'specs' && specifications.length">
@@ -219,6 +221,17 @@
                       <img v-if="spec.icon" :src="iconSrc(spec.icon)" class="rd-icon-slot rd-icon-slot--filled" alt="" />
                       <span v-else class="rd-icon-slot"></span>
                       <span class="rd-spec-text">{{ bl(spec) }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rd-specs" v-if="popupTab === 'advantages' && advantagesList.length">
+                  <span class="rd-panel-title">{{ bl({ en: 'Advantages', id: 'Keunggulan' }) }}</span>
+                  <div class="rd-specs-list">
+                    <div v-for="(adv, ai) in advantagesList" :key="ai" class="rd-spec-item">
+                      <img v-if="adv.icon" :src="iconSrc(adv.icon)" class="rd-icon-slot rd-icon-slot--filled" alt="" />
+                      <span v-else class="rd-icon-slot"></span>
+                      <span class="rd-spec-text">{{ bl(adv) }}</span>
                     </div>
                   </div>
                 </div>
@@ -293,14 +306,14 @@
                           <span class="rd-fact-val">{{ bl(currentVariant.profile.country) }}</span>
                         </div>
                         <div class="rd-profile-fact" v-if="currentVariant.profile.hq">
-                          <span class="rd-fact-lbl">{{ t('hq') }}</span>
+                          <span class="rd-fact-lbl">{{ currentVariant.profile.hqLabel || t('hq') }}</span>
                           <span class="rd-fact-val">{{ currentVariant.profile.hq }}</span>
                         </div>
                       </div>
                     </div>
 
                     <div class="rd-section" v-if="oemList.length">
-                      <span class="rd-panel-title">{{ bl({ en: 'OEM Partner', id: 'Mitra OEM' }) }} ///</span>
+                      <span class="rd-panel-title">{{ currentVariant.profile.oemLabel || bl({ en: 'OEM Partner', id: 'Mitra OEM' }) }} ///</span>
                       <div class="rd-oem-list">
                         <span v-for="(name, ni) in oemList" :key="ni" class="rd-icon-slot rd-icon-slot--oem" :title="name">
                           <img :src="oemSrc(name)" :alt="name" v-if="oemSrc(name)" />
@@ -308,13 +321,11 @@
                       </div>
                     </div>
 
-                    <div class="rd-section" v-if="currentVariant.profile.specialization">
-                      <span class="rd-panel-title">{{ bl({ en: 'Specialization', id: 'Spesialisasi' }) }} ///</span>
-                      <div class="rd-spec-block">
-                        <img v-if="currentVariant.profile.specialization.icon" :src="iconSrc(currentVariant.profile.specialization.icon)" class="rd-icon-slot rd-icon-slot--filled" alt="" />
-                        <span v-else class="rd-icon-slot"></span>
-                        <p class="rd-spec-block-text">{{ bl(currentVariant.profile.specialization) }}</p>
-                      </div>
+                    <div class="rd-section" v-if="profilePoints.length">
+                      <span class="rd-panel-title">{{ bl({ en: 'Profile', id: 'Profil' }) }} ///</span>
+                      <ul class="rd-profile-points">
+                        <li v-for="(point, pIndex) in profilePoints" :key="pIndex">{{ bl(point) }}</li>
+                      </ul>
                     </div>
 
                     <div class="rd-section" v-if="currentVariant.profile.historyHighlight && currentVariant.profile.historyHighlight.length">
@@ -329,17 +340,6 @@
 
                   </div>
                 </Transition>
-              </div>
-
-              <div class="rd-advantages" v-if="popupTab === 'highlights' && currentVariant.profile && currentVariant.profile.advantages && currentVariant.profile.advantages.length">
-                <span class="rd-panel-title rd-panel-title--boxed">{{ t('advantages') }} ///</span>
-                <div class="rd-adv-row">
-                  <div v-for="(adv, ai) in currentVariant.profile.advantages" :key="ai" class="rd-adv-col">
-                    <img v-if="adv.icon" :src="iconSrc(adv.icon)" class="rd-icon-slot rd-icon-slot--adv rd-icon-slot--filled" alt="" />
-                    <span v-else class="rd-icon-slot rd-icon-slot--adv"></span>
-                    <span class="rd-adv-label">{{ bl(adv) }}</span>
-                  </div>
-                </div>
               </div>
 
               <div class="rd-nav">
@@ -535,11 +535,6 @@ const BP = {
       { icon: 'vibration.png', en: 'Hydraulic damping technology', id: 'Teknologi peredam hidrolik' },
       { icon: 'car.png', en: 'OEM suspension assemblies supplied to Honda', id: 'Rakitan suspensi OEM dipasok ke Honda' },
     ],
-    specialization: {
-      icon: 'gear.png',
-      en: 'Automotive shock absorbers and damper systems, backed by decades of hydraulic damping engineering.',
-      id: 'Shock absorber otomotif dan sistem peredam, didukung rekayasa teknologi peredam hidrolik selama beberapa dekade.',
-    },
     historyHighlight: [
       { en: '1938 Established in Japan', id: '1938 Didirikan di Jepang' },
       { en: 'Core OEM supplier to Honda', id: 'Pemasok OEM utama Honda' },
@@ -572,11 +567,6 @@ const BP = {
       { icon: 'puzzle.png', en: 'OEM-compatible mounting dimensions', id: 'Dimensi mounting kompatibel OEM' },
       { icon: 'car.png', en: 'Front and rear suspension dampers', id: 'Damper suspensi depan dan belakang' },
     ],
-    specialization: {
-      icon: 'gear.png',
-      en: 'Aftermarket suspension developed for the Indonesian and Southeast Asian replacement parts market, engineered for easy installation and consistent damping.',
-      id: 'Suspensi aftermarket dikembangkan untuk pasar suku cadang pengganti Indonesia dan Asia Tenggara, direkayasa untuk kemudahan pemasangan dan peredaman konsisten.',
-    },
     historyHighlight: [
       { en: 'Developed under TRA Group', id: 'Dikembangkan oleh TRA Group' },
       { en: 'Distributed nationwide via TRAD', id: 'Didistribusikan secara nasional lewat TRAD' },
@@ -596,7 +586,7 @@ const BP = {
     founded: '1960',
     country: { en: 'Japan', id: 'Jepang' },
     hq: 'Ritto, Shiga, Japan',
-    oem: 'Toyota, Honda, Nissan, Mitsubishi, Mazda, Daihatsu, Suzuki, Isuzu',
+    oem: 'Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, Lexus, etc.',
     specifications: [
       { icon: 'factory.png', en: 'Manufactured by Sankei Industry Co., Ltd since 1960', id: 'Diproduksi oleh Sankei Industry Co., Ltd sejak 1960' },
       { icon: 'engineering.png', en: 'ISO 9001 certified since 1999', id: 'Tersertifikasi ISO 9001 sejak 1999' },
@@ -608,11 +598,6 @@ const BP = {
       { icon: 'puzzle.png', en: 'Lower arms, tie rod ends, ball joints, stabilizer links', id: 'Lower arm, tie rod end, ball joint, link stabilizer' },
       { icon: 'engineering.png', en: 'CNC-machined to strict dimensional tolerances', id: 'Dikerjakan CNC sesuai toleransi dimensi yang ketat' },
     ],
-    specialization: {
-      icon: 'engineering.png',
-      en: 'Precision steering and suspension components — upper arms, lower arms, tie rod ends, ball joints, and stabilizer links — all CNC-machined to strict dimensional tolerances.',
-      id: 'Komponen kemudi dan suspensi presisi — upper arm, lower arm, tie rod end, ball joint, dan link stabilizer — semua dikerjakan CNC sesuai toleransi dimensi yang ketat.',
-    },
     historyHighlight: [
       { en: '1960 Sankei Industry established', id: '1960 Sankei Industry didirikan' },
       { en: '1999 ISO 9001 certified', id: '1999 Sertifikasi ISO 9001' },
@@ -813,46 +798,47 @@ const BP = {
   },
 
   NOK: {
-    founded: '1939',
+    founded: '1941',
     country: { en: 'Japan', id: 'Jepang' },
     hq: 'Tokyo, Japan',
-    oem: 'Toyota, Honda, Nissan, Mitsubishi, Mazda, Daihatsu, Suzuki, Isuzu, Hino, Lexus',
+    oem: 'Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, Lexus',
     specifications: [
-      { icon: 'factory.png', en: "Japan's first domestic oil seal manufacturer (1939)", id: 'Produsen oil seal dalam negeri pertama Jepang (1939)' },
-      { icon: 'gear.png', en: '60+ global sealing facilities', id: '60+ fasilitas penyegelan global' },
-      { icon: 'engineering.png', en: 'Advanced polymer science for custom formulations', id: 'Ilmu polimer canggih untuk formulasi khusus' },
+      { icon: 'oem.png', en: "Japan's first oil seal manufacturer, established in 1941", id: 'Produsen oil seal pertama Jepang, didirikan pada 1941' },
+      { icon: 'global.png', en: 'Global partnerships in 14 countries with 81 group companies', id: 'Kemitraan global di 14 negara dengan 81 perusahaan grup' },
+      { icon: 'material.png', en: 'Oil seals, O-rings, packings, and synthetic rubber-based functional parts', id: 'Oil seal, O-ring, packing, dan komponen fungsional berbasis karet sintetis' },
+      { icon: 'factory.png', en: 'Production volume of approximately 26 tons per day', id: 'Volume produksi sekitar 26 ton per hari' },
     ],
     productHighlights: [
-      { icon: 'gear.png', en: 'Oil seals and mechanical seals', id: 'Oil seal dan mechanical seal' },
-      { icon: 'engineering.png', en: 'Valve stem seals', id: 'Valve stem seal' },
-      { icon: 'puzzle.png', en: 'Ball joint dust covers', id: 'Dust cover ball joint' },
-      { icon: 'vibration.png', en: 'Vibration isolators', id: 'Isolator getaran' },
+      { icon: 'oem.png', en: 'Primary OEM supplier', id: 'Pemasok OEM utama' },
+      { icon: 'precision.png', en: 'Precision engineered', id: 'Direkayasa dengan presisi' },
+      { icon: 'material.png', en: 'Advanced material', id: 'Material canggih' },
+      { icon: 'stars.png', en: 'Longer shelf-life', id: 'Masa simpan lebih panjang' },
     ],
-    specialization: {
-      icon: 'gear.png',
-      en: 'Oil seals, mechanical seals, valve stem seals, ball joint dust covers, and vibration isolators, supplied as Tier-1 OEM to major Japanese manufacturers.',
-      id: 'Oil seal, mechanical seal, valve stem seal, dust cover ball joint, dan isolator getaran, dipasok sebagai OEM Tier-1 kepada produsen Jepang utama.',
-    },
     historyHighlight: [
-      { en: "1939 Established as Japan's first oil seal maker", id: '1939 Didirikan sebagai produsen oil seal pertama Jepang' },
-      { en: '60+ global facilities today', id: '60+ fasilitas global saat ini' },
-      { en: 'Present Day', id: 'Present Day' },
+      { en: '1941 Nippon Bearing Production Co., Ltd. founded', id: '1941 Nippon Bearing Production Co., Ltd. didirikan' },
+      { en: '1960 Capital participation agreement with Freudenberg, Germany', id: '1960 Perjanjian partisipasi modal dengan Freudenberg, Jerman' },
+      { en: '1973 First overseas production plant established in Singapore', id: '1973 Pabrik produksi luar negeri pertama didirikan di Singapura' },
+      { en: '1985 Company name changed to NOK Corporation', id: '1985 Nama perusahaan berubah menjadi NOK Corporation' },
+      { en: '1989 Freudenberg-NOK General Partnership established in the USA', id: '1989 Freudenberg-NOK General Partnership didirikan di Amerika Serikat' },
+      { en: '1996 PT NOK Indonesia and NOK Asia Company established', id: '1996 PT NOK Indonesia dan NOK Asia Company didirikan' },
+      { en: '2003 Okura Plan Ltd. established', id: '2003 Okura Plan Ltd. didirikan' },
+      { en: 'Present Day', id: 'Saat Ini' },
     ],
     advantages: [
-      { icon: 'car.png', en: 'Tier-1 OEM supplier to Toyota, Honda, Nissan, Mitsubishi, and Isuzu', id: 'Pemasok OEM Tier-1 untuk Toyota, Honda, Nissan, Mitsubishi, dan Isuzu' },
-      { icon: 'engineering.png', en: 'Advanced polymer science producing superior rubber compound durability', id: 'Ilmu polimer canggih menghasilkan ketahanan kompon karet yang superior' },
-      { icon: 'gear.png', en: 'Excellent heat and chemical resistance for demanding engine bay environments', id: 'Ketahanan panas dan bahan kimia yang sangat baik untuk lingkungan mesin yang menuntut' },
-      { icon: 'puzzle.png', en: 'Precise dimensional manufacturing ensures consistent fitment and sealing', id: 'Manufaktur berdimensi presisi memastikan kesesuaian dan penyegelan yang konsisten' },
-      { icon: 'car.png', en: 'Extensive product catalog covering a broad range of vehicle applications', id: 'Katalog produk ekstensif mencakup berbagai aplikasi kendaraan' },
-      { icon: 'factory.png', en: 'Over 85 years of specialized rubber and sealing technology expertise', id: 'Lebih dari 85 tahun keahlian teknologi karet dan penyegelan khusus' },
+      { icon: 'oem.png', en: 'Primary OEM supplier for Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, and Lexus', id: 'Pemasok OEM utama untuk Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, dan Lexus' },
+      { icon: 'precision.png', en: 'Precision-engineered sealing parts for consistent fit and performance', id: 'Komponen sealing yang direkayasa presisi untuk kecocokan dan performa konsisten' },
+      { icon: 'material.png', en: 'Advanced synthetic rubber materials for durable sealing performance', id: 'Material karet sintetis canggih untuk performa sealing yang tahan lama' },
+      { icon: 'global.png', en: 'Freudenberg Sealing Technologies partnership with CORTECO product brand', id: 'Kemitraan dengan Freudenberg Sealing Technologies melalui brand produk CORTECO' },
+      { icon: 'factory.png', en: 'Global network across 14 countries and 81 group companies', id: 'Jaringan global di 14 negara dan 81 perusahaan grup' },
+      { icon: 'stars.png', en: 'Approximately 26 tons of production capacity per day', id: 'Kapasitas produksi sekitar 26 ton per hari' },
     ],
   },
 
   'NOK-steering': {
-    founded: '1939',
+    founded: '1941',
     country: { en: 'Japan', id: 'Jepang' },
     hq: 'Tokyo, Japan',
-    oem: 'Toyota, Honda, Nissan, Mitsubishi, Mazda, Daihatsu, Suzuki, Isuzu, Lexus',
+    oem: 'Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, Lexus',
     specifications: [
       { icon: 'gear.png', en: 'Rack seals and power steering fluid seals used as OE', id: 'Rack seal dan power steering fluid seal digunakan sebagai OE' },
       { icon: 'engineering.png', en: 'Withstands continuous hydraulic pressure and thermal cycling', id: 'Tahan tekanan hidrolik berkelanjutan dan siklus termal' },
@@ -901,11 +887,6 @@ const BP = {
       { icon: 'gear.png', en: 'Master cylinder repair kits', id: 'Kit perbaikan master cylinder' },
       { icon: 'puzzle.png', en: 'Clutch hydraulic components', id: 'Komponen hidrolik kopling' },
     ],
-    specialization: {
-      icon: 'gear.png',
-      en: 'Brake caliper repair kits, wheel cylinder kits, master cylinder repair kits, and clutch hydraulic components, backed by a safety-critical manufacturing culture developed over 65+ years.',
-      id: 'Kit perbaikan kaliper rem, kit silinder roda, kit perbaikan master cylinder, dan komponen hidrolik kopling, didukung budaya manufaktur kritis keselamatan yang dikembangkan selama 65+ tahun.',
-    },
     historyHighlight: [
       { en: '1933 Brake Laboratory origins (Meiji Sangyo)', id: '1933 Awal Brake Laboratory (Meiji Sangyo)' },
       { en: '1959 Seiken established', id: '1959 Seiken didirikan' },
@@ -938,11 +919,6 @@ const BP = {
       { icon: 'puzzle.png', en: 'Brake shoes and lining', id: 'Sepatu rem dan brake lining' },
       { icon: 'engineering.png', en: 'Brake fluid and anti-squeal shims', id: 'Cairan rem dan anti-squeal shim' },
     ],
-    specialization: {
-      icon: 'gear.png',
-      en: 'Heat-resistant friction brake pads for passenger cars, pickups, and vans, balancing stopping power with progressive, predictable wear.',
-      id: 'Kampas rem berkompon tahan panas untuk mobil penumpang, pickup, dan van, menyeimbangkan daya pengereman dengan keausan progresif yang dapat diprediksi.',
-    },
     historyHighlight: [
       { en: '1994 Compact International established in Bangkok', id: '1994 Compact International didirikan di Bangkok' },
       { en: 'Full-range verified product line', id: 'Rangkaian produk lengkap terverifikasi' },
@@ -1010,11 +986,6 @@ const BP = {
       { icon: 'engineering.png', en: 'Hub unit assemblies', id: 'Rakitan hub unit' },
       { icon: 'gear.png', en: 'Precision bearings', id: 'Bantalan presisi' },
     ],
-    specialization: {
-      icon: 'gear.png',
-      en: 'Wheel bearings, hub unit assemblies, and precision bearings supplied as Tier-1 OEM across 30+ countries, recognized as the aftermarket quality benchmark.',
-      id: 'Wheel bearing, rakitan hub unit, dan bantalan presisi dipasok sebagai OEM Tier-1 di 30+ negara, diakui sebagai tolok ukur kualitas aftermarket.',
-    },
     historyHighlight: [
       { en: "1916 Established as Japan's first ball bearing maker", id: '1916 Didirikan sebagai produsen bantalan bola pertama Jepang' },
       { en: 'Grew into top-3 global bearing producer', id: 'Berkembang menjadi top-3 produsen bantalan dunia' },
@@ -1046,11 +1017,6 @@ const BP = {
       { icon: 'engineering.png', en: 'Water pumps', id: 'Pompa air' },
       { icon: 'puzzle.png', en: 'Universal joints, ball joints, tie rod ends', id: 'Universal joint, ball joint, tie rod end' },
     ],
-    specialization: {
-      icon: 'gear.png',
-      en: '700+ wheel bearing types, water pumps, universal joints, ball joints, and tie rod ends, exported to 100+ countries.',
-      id: '700+ jenis wheel bearing, pompa air, universal joint, ball joint, dan tie rod end, diekspor ke 100+ negara.',
-    },
     historyHighlight: [
       { en: '1943 Established in Nara, Japan', id: '1943 Didirikan di Nara, Jepang' },
       { en: 'Exported to 100+ countries', id: 'Diekspor ke 100+ negara' },
@@ -1066,6 +1032,268 @@ const BP = {
     ],
   },
 }
+
+// Reference profile data supplied for the brand cards.
+Object.assign(BP.Showa, {
+  founded: '1938',
+  country: { en: 'Japan', id: 'Jepang' },
+  hq: 'Gyoda, Saitama, Japan (now operating under Hitachi Astemo)',
+  hqLabel: 'Headquarters',
+  oem: 'Honda, Mitsubishi, Toyota, Nissan, Mazda, etc.',
+  oemLabel: 'Applicable to',
+  profile: [
+    { en: 'Specializes in automotive shock absorbers and damper systems, with decades of engineering in hydraulic damping technology.', id: 'Spesialis shock absorber dan sistem damper otomotif dengan pengalaman puluhan tahun dalam teknologi peredaman hidrolik.' },
+    { en: 'Recognized shock absorber brand, trusted by OEM manufacturers and aftermarket worldwide in Asia, Europe and America.', id: 'Brand shock absorber terpercaya oleh produsen OEM dan aftermarket di Asia, Eropa dan Amerika.' },
+  ],
+  historyHighlight: [
+    { en: '1938 Establishment of Showa manufacture aircraft components', id: '1938 Showa didirikan sebagai produsen komponen pesawat' },
+    { en: '1946 Production of automobile components', id: '1946 Produksi komponen otomotif' },
+    { en: '1993 Renamed as SHOWA CORPORATION', id: '1993 Berganti nama menjadi SHOWA CORPORATION' },
+    { en: '2000 Establishment of Showa Regional Center in Thailand', id: '2000 Pendirian Showa Regional Center di Thailand' },
+    { en: '2021 Merger of Hitachi Automotive Systems, Showa, Keihin and Nissin Kogyo into Hitachi Astemo', id: '2021 Penggabungan Hitachi Automotive Systems, Showa, Keihin dan Nissin Kogyo menjadi Hitachi Astemo' },
+  ],
+  productHighlights: [
+    { icon: 'oem.png', en: 'Primary OEM supplier to Honda', id: 'Pemasok OEM utama untuk Honda' },
+    { icon: 'thailand.png', en: 'Made in Thailand', id: 'Dibuat di Thailand' },
+    { icon: 'performance.png', en: 'Excellent vibration damping', id: 'Peredaman getaran sangat baik' },
+    { icon: 'hydraulics.png', en: 'Consistent damping performance', id: 'Performa peredaman konsisten' },
+    { icon: 'stars.png', en: 'Superior ride comfort', id: 'Kenyamanan berkendara superior' },
+  ],
+})
+Object.assign(BP.KJ, {
+  founded: null,
+  country: { en: 'Indonesia', id: 'Indonesia' },
+  hq: 'PT Timur Raya Anugerah Damai',
+  hqLabel: 'Brand Owner',
+  oem: 'Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, etc.',
+  oemLabel: 'Applicable to',
+  specifications: [
+    { icon: 'factory.png', en: 'Aftermarket shock absorber brand under PT Timur Raya Anugerah Damai (TRAD)', id: 'Brand shock absorber aftermarket di bawah PT Timur Raya Anugerah Damai (TRAD)' },
+    { icon: 'car.png', en: 'Developed for the Indonesian and Southeast Asian replacement parts market', id: 'Dikembangkan untuk pasar suku cadang pengganti Indonesia dan Asia Tenggara' },
+    { icon: 'gear.png', en: 'Factory supplies automotive shock absorber to OE and aftermarket brands worldwide', id: 'Pabrik memasok shock absorber otomotif untuk brand OE dan aftermarket di seluruh dunia' },
+    { icon: 'factory.png', en: 'ISO 14001 quality management system certified', id: 'Tersertifikasi sistem manajemen mutu ISO 14001' },
+  ],
+  profile: [
+    { en: 'Aftermarket shock absorber brand under PT Timur Raya Anugerah Damai (TRAD), developed for the Indonesian and Southeast Asian replacement parts market.', id: 'Brand shock absorber aftermarket di bawah PT Timur Raya Anugerah Damai (TRAD), dikembangkan untuk pasar suku cadang pengganti Indonesia dan Asia Tenggara.' },
+    { en: 'Factory supplies automotive shock absorber to OE and aftermarket brands worldwide.', id: 'Pabrik memasok shock absorber otomotif untuk brand OE dan aftermarket di seluruh dunia.' },
+    { en: 'ISO, IATF quality management system certified.', id: 'Tersertifikasi sistem manajemen mutu ISO, IATF.' },
+  ],
+  productHighlights: [
+    { icon: 'price.png', en: 'Value for money', id: 'Harga sepadan' },
+    { icon: 'reliable.png', en: 'Reliable damping performance', id: 'Performa peredaman andal' },
+    { icon: 'comfort.png', en: 'Comfort ride', id: 'Kenyamanan berkendara' },
+  ],
+})
+BP.KJLEX = {
+  founded: null,
+  country: { en: 'Indonesia', id: 'Indonesia' },
+  hq: 'PT Timur Raya Anugerah Damai',
+  hqLabel: 'Brand Owner',
+  oem: 'Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, etc.',
+  oemLabel: 'Applicable to',
+  specifications: [
+    { icon: 'parts.png', en: 'Wide range of product variants such as accelerator cable, clutch cable, engine stop cable, transmission cable, hand brake cable, etc.', id: 'Rangkaian varian produk luas seperti kabel akselerator, kabel kopling, kabel engine stop, kabel transmisi, kabel rem tangan, dan lainnya' },
+    { icon: 'factory.png', en: 'Factory supplies automotive cable to OE market globally', id: 'Pabrik memasok kabel otomotif ke pasar OE secara global' },
+  ],
+  profile: [
+    { en: 'Wide range of product variants such as accelerator cable, clutch cable, engine stop cable, transmission cable, hand brake cable, etc.', id: 'Rangkaian varian produk luas seperti kabel akselerator, kabel kopling, kabel engine stop, kabel transmisi, kabel rem tangan, dan lainnya.' },
+    { en: 'Factory supplies automotive cable to the OE market globally.', id: 'Pabrik memasok kabel otomotif ke pasar OE secara global.' },
+  ],
+  productHighlights: [
+    { icon: 'oem.png', en: 'OEM quality product', id: 'Produk berkualitas OEM' },
+    { icon: 'precision.png', en: 'Precision engineered', id: 'Direkayasa dengan presisi' },
+    { icon: 'global.png', en: 'Global brand in 18 countries', id: 'Brand global di 18 negara' },
+  ],
+  historyHighlight: [],
+  advantages: [
+    { icon: 'global.png', en: 'Wide fitment range for Japanese and Asian car models', id: 'Cakupan kesesuaian luas untuk model mobil Jepang dan Asia' },
+    { icon: 'precision.png', en: 'OEM-compatible product quality for maximum performance and easy installation', id: 'Kualitas produk kompatibel OEM untuk performa maksimal dan pemasangan mudah' },
+  ],
+}
+Object.assign(BP['555'], {
+  founded: '1960',
+  country: { en: 'Japan', id: 'Jepang' },
+  hq: null,
+  oem: 'Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, Lexus, etc.',
+  oemLabel: 'Applicable to',
+  profile: [
+    { en: 'Premium suspension and steering parts serving OEM and aftermarket worldwide in more than 120 countries including Japan, Southeast Asia, the Middle East, Europe, America, Africa and Oceania.', id: 'Komponen suspensi dan kemudi premium untuk OEM dan aftermarket di lebih dari 120 negara termasuk Jepang, Asia Tenggara, Timur Tengah, Eropa, Amerika, Afrika dan Oseania.' },
+    { en: 'Wide range with more than 2,000 automobile products available.', id: 'Rangkaian luas dengan lebih dari 2.000 produk otomotif tersedia.' },
+    { en: 'ISO 9001 certified.', id: 'Tersertifikasi ISO 9001.' },
+  ],
+  historyHighlight: [
+    { en: '1960 Establishment of Gosyu Seiki as mechanical processing of Gosyu Forging Co., Ltd. (now Gosyu Corporation)', id: '1960 Gosyu Seiki didirikan sebagai pemrosesan mekanis Gosyu Forging Co., Ltd. (sekarang Gosyu Corporation)' },
+    { en: '1962 Production and sales of Tie Rod end started with 555 brand', id: '1962 Produksi dan penjualan Tie Rod end dimulai dengan brand 555' },
+    { en: '1963 Company name became Sankei Industry Co., Ltd.', id: '1963 Nama perusahaan berubah menjadi Sankei Industry Co., Ltd.' },
+    { en: '1972 Received plant eligible certification from the Japanese Quality Assurance Organization (JQA)', id: '1972 Menerima sertifikasi pabrik dari Japanese Quality Assurance Organization (JQA)' },
+    { en: '1973 Received recommended parts certification from the Japan Automotive Products Association (JAPA)', id: '1973 Menerima sertifikasi suku cadang rekomendasi dari Japan Automotive Products Association (JAPA)' },
+    { en: '1999 Received ISO 9001 certification', id: '1999 Menerima sertifikasi ISO 9001' },
+    { en: '2010 Established USA affiliate, North American Suspension Inc.', id: '2010 Mendirikan afiliasi Amerika Serikat, North American Suspension Inc.' },
+  ],
+  productHighlights: [
+    { icon: 'oem.png', en: 'Primary OEM supplier', id: 'Pemasok OEM utama' },
+    { icon: 'stars.png', en: 'Recommended by Japan Automotive Association', id: 'Direkomendasikan Japan Automotive Association' },
+    { icon: 'global.png', en: 'Approved by over 120 countries worldwide', id: 'Disetujui di lebih dari 120 negara di seluruh dunia' },
+  ],
+})
+Object.assign(BP.NSK, {
+  founded: '1916',
+  country: { en: 'Japan', id: 'Jepang' },
+  hq: 'Tokyo, Japan',
+  hqLabel: 'Headquarters',
+  oem: 'Toyota, Honda, Nissan, Mazda, Mitsubishi, Isuzu, Hino, Lexus, etc.',
+  oemLabel: 'Applicable to',
+  profile: [
+    { en: 'Pioneer and the largest bearing manufacturer in Japan since 1916.', id: 'Pelopor dan produsen bearing terbesar di Jepang sejak 1916.' },
+    { en: 'Top 3 bearing manufacturer in the world with more than 100 years history.', id: 'Produsen bearing 3 besar dunia dengan sejarah lebih dari 100 tahun.' },
+    { en: 'Supply to OE and aftermarket bearing worldwide with established plants and business locations in over 30 countries.', id: 'Memasok ke OE dan aftermarket bearing di seluruh dunia dengan pabrik dan lokasi bisnis yang telah mapan di lebih dari 30 negara.' },
+    { en: 'Broad product range, including bearings for electric motors, hub unit bearings, electric power steering, etc.', id: 'Rangkaian produk luas, termasuk bearing untuk motor listrik, hub unit bearing, electric power steering, dan lainnya.' },
+  ],
+  historyHighlight: [
+    { en: '1916 Production of bearings, establishment of Fujisawa plant', id: '1916 Produksi bearing, pendirian pabrik Fujisawa' },
+    { en: '1962 Establishment of sales office in the US, Europe and Australia', id: '1962 Pendirian kantor penjualan di Amerika Serikat, Eropa dan Australia' },
+    { en: '1970 Establishment of production plant in Brazil (first outside Japan)', id: '1970 Pendirian pabrik produksi di Brasil (pertama di luar Jepang)' },
+    { en: '1994 Establishment of production plant in Indonesia (first in ASEAN)', id: '1994 Pendirian pabrik produksi di Indonesia (pertama di ASEAN)' },
+    { en: '2016 100th anniversary of NSK', id: '2016 Hari jadi ke-100 NSK' },
+    { en: '2022 Switched to 100% clean energy at sites in Europe and began implementing in Japan', id: '2022 Beralih ke energi bersih 100% di fasilitas Eropa dan mulai menerapkannya di Jepang' },
+  ],
+  productHighlights: [
+    { icon: 'oem.png', en: 'Primary OEM supplier', id: 'Pemasok OEM utama' },
+    { icon: 'precision.png', en: 'High precision', id: 'Presisi tinggi' },
+    { icon: 'stars.png', en: 'Global standard bearing', id: 'Bearing berstandar global' },
+    { icon: 'global.png', en: 'Available worldwide', id: 'Tersedia di seluruh dunia' },
+  ],
+})
+Object.assign(BP.GMB, {
+  founded: '1943',
+  country: { en: 'Japan', id: 'Jepang' },
+  hq: null,
+  oem: 'Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, etc.',
+  oemLabel: 'Applicable to',
+  profile: [
+    { en: 'Over 80 years of experience with ISO 9001, ISO 14001 and IATF 16949 accreditations.', id: 'Lebih dari 80 tahun pengalaman dengan akreditasi ISO 9001, ISO 14001 dan IATF 16949.' },
+    { en: 'Product quality is proven worldwide with global partnerships in Japan, Asia, Europe and North America for both OEM and aftermarket.', id: 'Kualitas produk terbukti di seluruh dunia dengan kemitraan global di Jepang, Asia, Eropa dan Amerika Utara untuk OEM dan aftermarket.' },
+    { en: 'Production plants and global network in Japan, China, Korea, Thailand, Russia, India, USA, Romania and Australia.', id: 'Pabrik produksi dan jaringan global berada di Jepang, Tiongkok, Korea, Thailand, Rusia, India, Amerika Serikat, Rumania dan Australia.' },
+  ],
+  historyHighlight: [
+    { en: '1943 Founded Matsuoka Seikousyo in Osaka', id: '1943 Matsuoka Seikousyo didirikan di Osaka' },
+    { en: '1976 Establishment of GMB Universal Joints Inc. subsidiary in the USA', id: '1976 Pendirian anak perusahaan GMB Universal Joints Inc. di Amerika Serikat' },
+    { en: '1989 GMB Corporation is founded', id: '1989 GMB Corporation didirikan' },
+    { en: '2002 Head office moved to Nara', id: '2002 Kantor pusat pindah ke Nara' },
+    { en: '2009 Establishment of Thai GOWA GMB', id: '2009 Pendirian Thai GOWA GMB' },
+    { en: '2013 Establishment of GMB Automotive Company in China', id: '2013 Pendirian GMB Automotive Company di Tiongkok' },
+    { en: '2025 Establishment of Osaka branch', id: '2025 Pendirian cabang Osaka' },
+  ],
+  specifications: [
+    { icon: 'factory.png', en: 'Over 80 years of experience with ISO 9001, ISO 14001, and IATF 16949 accreditations', id: 'Lebih dari 80 tahun pengalaman dengan akreditasi ISO 9001, ISO 14001, dan IATF 16949' },
+    { icon: 'global.png', en: 'Product quality is proven worldwide with global partnerships in Japan, Asia, Europe and North America for both OEM and aftermarket', id: 'Kualitas produk terbukti di seluruh dunia dengan kemitraan global di Jepang, Asia, Eropa dan Amerika Utara untuk OEM dan aftermarket' },
+    { icon: 'factory.png', en: 'Production plants and global network in Japan, China, Korea, Thailand, Russia, India, USA, Romania and Australia', id: 'Pabrik produksi dan jaringan global di Jepang, Tiongkok, Korea, Thailand, Rusia, India, Amerika Serikat, Rumania dan Australia' },
+  ],
+  productHighlights: [
+    { icon: 'oem.png', en: 'Primary OEM supplier', id: 'Pemasok OEM utama' },
+    { icon: 'stars.png', en: 'Global standard certified for product safety', id: 'Bersertifikasi standar global untuk keamanan produk' },
+    { icon: 'global.png', en: 'Approved by 1,000+ customers worldwide', id: 'Disetujui lebih dari 1.000 pelanggan di seluruh dunia' },
+  ],
+})
+Object.assign(BP.Seiken, {
+  founded: '1959',
+  country: { en: 'Japan', id: 'Jepang' },
+  hq: null,
+  oem: 'Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, etc.',
+  oemLabel: 'Applicable to',
+  profile: [
+    { en: 'Manufacture and sales of automotive brake parts, including hydraulic brake parts, brake fluid, antifreeze, etc.', id: 'Manufaktur dan penjualan komponen rem otomotif, termasuk komponen rem hidrolik, minyak rem, antifreeze dan lainnya.' },
+    { en: 'Product quality is proven worldwide with global partnerships for Japanese, Asian, European and American car and motorcycle brands, both OE and aftermarket.', id: 'Kualitas produk terbukti di seluruh dunia dengan kemitraan global untuk brand mobil dan motor Jepang, Asia, Eropa dan Amerika, baik OE maupun aftermarket.' },
+    { en: 'Broad product range with more than 30,000 parts available.', id: 'Rangkaian produk luas dengan lebih dari 30.000 komponen tersedia.' },
+  ],
+  historyHighlight: [
+    { en: '1933 Founding of Meiji Shokai', id: '1933 Meiji Shokai didirikan' },
+    { en: '1938 Establishment of Brake Machinery Research Institute', id: '1938 Pendirian Brake Machinery Research Institute' },
+    { en: '1959 Establishment of Seiken Chemical Industry Co., Ltd., HQ and factory located in Konan, Minato-ku', id: '1959 Pendirian Seiken Chemical Industry Co., Ltd., kantor pusat dan pabrik di Konan, Minato-ku' },
+    { en: '1988 Establishment of new factory in Shizuoka', id: '1988 Pendirian pabrik baru di Shizuoka' },
+    { en: '2005 Received ISO 9001 Certification', id: '2005 Menerima sertifikasi ISO 9001' },
+    { en: '2014 HQ relocated to current address in Tokyo', id: '2014 Kantor pusat pindah ke alamat saat ini di Tokyo' },
+    { en: '2024 Establishment of Seiken Center as the core production base', id: '2024 Pendirian Seiken Center sebagai basis produksi utama' },
+  ],
+  specifications: [
+    { icon: 'factory.png', en: 'Manufacture and sales of automotive brake parts, including hydraulic brake parts, brake fluid, antifreeze, etc.', id: 'Manufaktur dan penjualan komponen rem otomotif, termasuk komponen rem hidrolik, minyak rem, antifreeze, dan lainnya' },
+    { icon: 'global.png', en: 'Product quality is proven worldwide with global partnerships for Japanese, Asian, European and American car and motorcycle brands', id: 'Kualitas produk terbukti di seluruh dunia dengan kemitraan global untuk brand mobil dan motor Jepang, Asia, Eropa dan Amerika' },
+    { icon: 'parts.png', en: 'Broad product range with more than 30,000 parts available', id: 'Rangkaian produk luas dengan lebih dari 30.000 komponen tersedia' },
+  ],
+  productHighlights: [
+    { icon: 'oem.png', en: 'Primary OEM supplier', id: 'Pemasok OEM utama' },
+    { icon: 'performance.png', en: 'High performance', id: 'Performa tinggi' },
+    { icon: 'stars.png', en: 'Global standard certified for product safety', id: 'Bersertifikasi standar global untuk keamanan produk' },
+    { icon: 'global.png', en: 'Approved by customers in more than 150 countries', id: 'Disetujui pelanggan di lebih dari 150 negara' },
+  ],
+})
+Object.assign(BP['Compact Brakes'], {
+  founded: '1994',
+  country: { en: 'Japan', id: 'Jepang' },
+  hq: null,
+  oem: 'Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, etc.',
+  oemLabel: 'Applicable to',
+  profile: [
+    { en: 'Certified with ISO 9001, ISO 14001, IATF 16949, TUV Rheinland.', id: 'Tersertifikasi ISO 9001, ISO 14001, IATF 16949, TUV Rheinland.' },
+    { en: 'Product quality is proven worldwide with global partnerships for both OEM and aftermarket in Asia, Europe, America and beyond.', id: 'Kualitas produk terbukti di seluruh dunia dengan kemitraan global untuk OEM dan aftermarket di Asia, Eropa, Amerika dan wilayah lainnya.' },
+  ],
+  specifications: [
+    { icon: 'oem.png', en: 'Certified with ISO 9001, IATF 16949, TUV Rheinland', id: 'Tersertifikasi ISO 9001, IATF 16949, TUV Rheinland' },
+    { icon: 'global.png', en: 'Product quality is proven worldwide with global partnerships for both OE and aftermarket in Asia, Europe, America and beyond', id: 'Kualitas produk terbukti di seluruh dunia dengan kemitraan global untuk OE dan aftermarket di Asia, Eropa, Amerika dan wilayah lainnya' },
+    { icon: 'global.png', en: 'Collaboration with brake experts around the world including Japan, England, USA, to deliver world-class standard products', id: 'Kolaborasi dengan ahli rem di seluruh dunia termasuk Jepang, Inggris dan Amerika Serikat untuk menghasilkan produk berstandar dunia' },
+    { icon: 'parts.png', en: 'Wide product fitment range for Japanese, Asian, American vehicle models', id: 'Cakupan kesesuaian produk luas untuk model kendaraan Jepang, Asia dan Amerika' },
+  ],
+  productHighlights: [
+    { icon: 'organic.png', en: 'Organic formulation', id: 'Formulasi organik' },
+    { icon: 'dust.png', en: 'Low dust', id: 'Debu rendah' },
+    { icon: 'noise.png', en: 'Low noise', id: 'Suara rendah' },
+    { icon: 'drive.png', en: 'Comfort drive performance', id: 'Performa berkendara nyaman' },
+  ],
+})
+Object.assign(BP.NOK, {
+  hq: null,
+  oemLabel: 'Applicable to',
+  profile: [
+    { en: "Japan's first oil seal manufacturer in 1941 with a wide range of functional parts such as oil seals, O-rings, packings and other synthetic rubber-based products.", id: 'Produsen oil seal pertama Jepang pada 1941 dengan rangkaian komponen fungsional seperti oil seal, O-ring, packing dan produk berbasis karet sintetis lainnya.' },
+    { en: 'Business partnerships with Freudenberg Sealing Technologies with product brand CORTECO.', id: 'Kemitraan bisnis dengan Freudenberg Sealing Technologies melalui brand produk CORTECO.' },
+    { en: 'Global partnerships worldwide in 14 countries with 81 group companies.', id: 'Kemitraan global di 14 negara dengan 81 perusahaan grup.' },
+    { en: 'Production volume approximately 26 tons per day.', id: 'Volume produksi sekitar 26 ton per hari.' },
+  ],
+  historyHighlight: [
+    { en: '1941 Nippon Bearing Production Co., Ltd. is founded', id: '1941 Nippon Bearing Production Co., Ltd. didirikan' },
+    { en: '1960 A capital participation agreement is concluded with Freudenberg, Germany', id: '1960 Perjanjian partisipasi modal dengan Freudenberg, Jerman disepakati' },
+    { en: '1973 Establishment of production plant in Singapore as the first overseas production plant', id: '1973 Pendirian pabrik produksi di Singapura sebagai pabrik luar negeri pertama' },
+    { en: '1985 Company name becomes NOK Corporation', id: '1985 Nama perusahaan menjadi NOK Corporation' },
+    { en: '1989 Freudenberg-NOK General Partnership is established in the USA as a joint venture with Freudenberg', id: '1989 Freudenberg-NOK General Partnership didirikan di Amerika Serikat sebagai joint venture dengan Freudenberg' },
+    { en: '1996 PT NOK Indonesia is founded in Indonesia, NOK Asia Company Pte. Ltd. is founded in Singapore', id: '1996 PT NOK Indonesia didirikan di Indonesia, NOK Asia Company Pte. Ltd. didirikan di Singapura' },
+    { en: '2003 Okura Plan Ltd. is established', id: '2003 Okura Plan Ltd. didirikan' },
+    { en: '2007 Syzygy Co., Ltd. is founded', id: '2007 Syzygy Co., Ltd. didirikan' },
+  ],
+})
+
+// The reference material only provides Advantages for these three brands.
+// Keep every other brand free of inferred or added claims.
+Object.values(BP).forEach((brand) => {
+  brand.advantages = []
+})
+
+BP.KJ.advantages = [
+  { icon: 'global.png', en: 'Wide fitment range covering popular Japanese and Asian vehicle models', id: 'Cakupan kesesuaian luas untuk model kendaraan Jepang dan Asia yang populer' },
+  { icon: 'precision.png', en: 'Easy installation with OEM compatible mounting dimensions', id: 'Pemasangan mudah dengan dimensi mounting yang kompatibel dengan OEM' },
+  { icon: 'comfort.png', en: 'Good service life for everyday passenger vehicle applications', id: 'Masa pakai yang baik untuk penggunaan kendaraan penumpang sehari-hari' },
+]
+
+BP['Compact Brakes'].advantages = [
+  { icon: 'organic.png', en: 'Available for standard and premium grade brake pads with organic ceramics material', id: 'Tersedia untuk kampas rem grade standar dan premium dengan material keramik organik' },
+  { icon: 'dust.png', en: 'Uses copper-free and non-asbestos formulation, and is tested using brake dynamometers', id: 'Menggunakan formulasi bebas tembaga dan non-asbes, serta diuji menggunakan brake dynamometer' },
+  { icon: 'global.png', en: 'Wide product fitment range for Japanese, Asian, and American vehicle models', id: 'Cakupan kesesuaian produk luas untuk model kendaraan Jepang, Asia, dan Amerika' },
+]
+
+// KJLEX Advantages are taken verbatim from the supplied reference.
+BP.KJLEX.advantages = [
+  { icon: 'global.png', en: 'Wide fitment range for Japanese and Asian car models', id: 'Cakupan kesesuaian luas untuk model mobil Jepang dan Asia' },
+  { icon: 'precision.png', en: 'OEM-compatible product quality for maximum performance and easy installation', id: 'Kualitas produk kompatibel OEM untuk performa maksimal dan pemasangan mudah' },
+]
 
 const trustBrands = ['SHOWA', 'KJ', '555', 'RBI', 'NOK', 'SEIKEN', 'COMPACT BRAKES', 'NSK', 'GMB', 'KJTRIC']
 const originCountries = computed(() => new Set(Object.values(BP).map(b => b.country?.en).filter(Boolean)).size)
@@ -1108,11 +1336,11 @@ const hotspots = [
           en: 'The rubber bushing dampens vibration between suspension components and the chassis, keeping suspension geometry precise while isolating road noise. RBI compounds are formulated for tropical heat and humidity.',
           id: 'Bushing karet meredam getaran antara komponen suspensi dan chassis, menjaga geometri suspensi tetap presisi sambil meredam suara jalan. Kompon RBI diformulasikan untuk panas dan kelembapan tropis.',
         }, profile: BP.RBI },
-      { brand: 'KJTRIC', brandLogo: '/images/brands/kjtric.png', image: '/images/parts/bushing.png', model: '/models/bushing.glb',
+      { brand: '555', brandLogo: '/images/brands/555.png', image: '/images/parts/bushing.png', model: '/models/bushing.glb',
         desc: {
-          en: 'KJTRIC offers an affordable rubber-to-metal bonded bushing engineered for high-volume Japanese vehicles in Indonesia, restoring ride comfort on worn suspensions.',
-          id: 'KJTRIC menawarkan bushing karet-logam bonded yang terjangkau, direkayasa untuk kendaraan Jepang volume tinggi di Indonesia, mengembalikan kenyamanan berkendara pada suspensi yang aus.',
-        }, profile: BP.KJTRIC },
+          en: '555 offers a precision-made rubber-to-metal bonded bushing engineered to restore suspension geometry and ride comfort on worn vehicles.',
+          id: '555 menawarkan bushing karet-logam bonded yang dibuat presisi untuk mengembalikan geometri suspensi dan kenyamanan berkendara pada kendaraan yang aus.',
+        }, profile: BP['555'] },
     ],
   },
 
@@ -1153,12 +1381,12 @@ const hotspots = [
   {
     x: 20, y: 89, label: 'Disc Rotor', labelDir: 'right', icon: '⭕',
     brandVariants: [
-      { brand: 'Compact Brakes', brandLogo: '/images/brands/compact-brakes.png', image: '/images/parts/disc_rotor.png',
+      { brand: 'Seiken', brandLogo: '/images/brands/seiken.png', image: '/images/parts/disc_rotor.png',
         model: '/models/disk_rotor.glb', baseRotationX: Math.PI / 2,
         desc: {
-          en: 'The ventilated disc rotor absorbs and dissipates heat generated during braking. Compact Brakes rotors use Y Groove Technology to channel away dust, water, and heat for improved cooling.',
-          id: 'Disc rotor berventilasi menyerap dan melepaskan panas yang dihasilkan saat pengereman. Rotor Compact Brakes menggunakan Y Groove Technology untuk menyalurkan debu, air, dan panas demi pendinginan yang lebih baik.',
-        }, profile: BP['Compact Brakes-rotor'] },
+          en: 'The Seiken disc rotor provides stable braking performance with precise dimensions and reliable heat management for everyday driving.',
+          id: 'Disc rotor Seiken memberikan performa pengereman stabil dengan dimensi presisi dan pengelolaan panas yang andal untuk penggunaan sehari-hari.',
+        }, profile: BP.Seiken },
     ],
   },
 
@@ -1171,23 +1399,17 @@ const hotspots = [
           en: 'The wheel bearing allows the wheel to rotate with minimal friction against the hub. NSK is Japan\'s first ball bearing maker and a Tier-1 supplier, engineered for low rolling resistance and long fatigue life.',
           id: 'Wheel bearing memungkinkan roda berputar dengan friksi minimal terhadap hub. NSK adalah produsen bantalan bola pertama Jepang dan pemasok Tier-1, direkayasa untuk hambatan gulir rendah dan masa pakai kelelahan panjang.',
         }, profile: BP.NSK },
-      { brand: 'GMB', brandLogo: '/images/brands/gmb.png', image: '/images/parts/wheel_bearing.png',
-        model: '/models/wheel_bearing.glb',
-        desc: {
-          en: 'GMB manufactures 700+ wheel bearing types with quality steel alloys, exported to 100+ countries as a competitively priced alternative to premium brands.',
-          id: 'GMB memproduksi 700+ jenis wheel bearing dengan paduan baja berkualitas, diekspor ke 100+ negara sebagai alternatif dengan harga kompetitif dibanding merek premium.',
-        }, profile: BP.GMB },
     ],
   },
 
   {
     x: 33, y: 82, label: 'Rack Steering Assy', labelDir: 'right', icon: '🎯',
     brandVariants: [
-      { brand: 'NOK', brandLogo: '/images/brands/nok.png', image: '/images/parts/rack_steering.png', model: '/models/rack_steering_assy.glb', cameraZoom: 0.68,
+      { brand: 'KJ Steering', brandLogo: '/images/brands/kjsteering.png', image: '/images/parts/rack_steering.png', model: '/models/rack_steering_assy.glb', cameraZoom: 0.68,
         desc: {
-          en: 'NOK rack seals and power steering fluid seals resist hydraulic pressure and thermal cycling, enabling a cost-effective rack rebuild as an alternative to full assembly replacement.',
-          id: 'Rack seal dan power steering fluid seal NOK tahan tekanan hidrolik dan siklus termal, memungkinkan rebuild rack yang hemat biaya sebagai alternatif penggantian rakitan penuh.',
-        }, profile: BP['NOK-steering'] },
+          en: 'KJ Steering rack assemblies provide a reliable replacement solution with fitment-focused engineering for popular Japanese vehicle applications.',
+          id: 'Rack steering assy KJ Steering memberikan solusi pengganti yang andal dengan rekayasa yang berfokus pada kecocokan untuk kendaraan Jepang populer.',
+        }, profile: BP.KJ },
     ],
   },
 
@@ -1200,12 +1422,6 @@ const hotspots = [
           en: 'The front-right wheel bearing allows the wheel to spin smoothly. NSK is recognized as the aftermarket quality benchmark, Tier-1 OEM across 30+ countries.',
           id: 'Wheel bearing depan-kanan memungkinkan roda berputar dengan lancar. NSK diakui sebagai tolok ukur kualitas aftermarket, OEM Tier-1 di 30+ negara.',
         }, profile: BP.NSK },
-      { brand: 'GMB', brandLogo: '/images/brands/gmb.png', image: '/images/parts/wheel_bearing.png',
-        model: '/models/wheel_bearing.glb',
-        desc: {
-          en: 'GMB wheel bearings offer strong coverage for Toyota, Nissan, Honda, and Isuzu applications with reliable load capacity and fatigue resistance.',
-          id: 'Wheel bearing GMB menawarkan cakupan kuat untuk aplikasi Toyota, Nissan, Honda, dan Isuzu dengan kapasitas beban dan ketahanan kelelahan yang andal.',
-        }, profile: BP.GMB },
     ],
   },
 
@@ -1244,11 +1460,11 @@ const hotspots = [
           en: 'The rear rubber bushing dampens vibration and noise transmitted from the suspension to the cabin. RBI compounds are formulated for tropical heat and humidity.',
           id: 'Bushing karet belakang meredam getaran dan suara yang diteruskan dari suspensi ke kabin. Kompon RBI diformulasikan untuk panas dan kelembapan tropis.',
         }, profile: BP.RBI },
-      { brand: 'KJTRIC', brandLogo: '/images/brands/kjtric.png', image: '/images/parts/bushing_rear.png', model: '/models/bushing.glb',
+      { brand: '555', brandLogo: '/images/brands/555.png', image: '/images/parts/bushing_rear.png', model: '/models/bushing.glb',
         desc: {
-          en: 'KJTRIC offers an affordable rear bushing option engineered for high-volume Japanese vehicles common in Indonesia.',
-          id: 'KJTRIC menawarkan bushing belakang yang terjangkau, direkayasa untuk kendaraan Jepang volume tinggi yang umum di Indonesia.',
-        }, profile: BP.KJTRIC },
+          en: '555 offers a reliable rear bushing engineered to maintain precise wheel geometry and ride comfort on multi-link suspensions.',
+          id: '555 menawarkan bushing belakang yang andal untuk menjaga geometri roda dan kenyamanan berkendara pada suspensi multi-link.',
+        }, profile: BP['555'] },
     ],
   },
 
@@ -1277,12 +1493,62 @@ const hotspots = [
   {
     x: 93, y: 42, label: 'Brake Pad / Disc Rotor', labelDir: 'left', icon: '🔴',
     brandVariants: [
-      { brand: 'Compact Brakes', brandLogo: '/images/brands/compact-brakes.png', image: '/images/parts/disc_rotor.png',
+      { brand: 'Seiken', brandLogo: '/images/brands/seiken.png', image: '/images/parts/disc_rotor.png',
         model: '/models/disk_rotor.glb', baseRotationX: Math.PI / 2,
         desc: {
-          en: 'The rear-right brake pad and disc rotor work together with ABS for optimal front-to-rear brake distribution. Compact Brakes rotors use Y Groove Technology for improved cooling.',
-          id: 'Brake pad dan disc rotor belakang-kanan bekerja sama dengan ABS untuk distribusi pengereman depan-belakang yang optimal. Rotor Compact Brakes menggunakan Y Groove Technology untuk pendinginan yang lebih baik.',
-        }, profile: BP['Compact Brakes-rotor'] },
+          en: 'The rear-right Seiken disc rotor supports stable braking with precise dimensions and dependable heat management.',
+          id: 'Disc rotor Seiken belakang-kanan mendukung pengereman stabil dengan dimensi presisi dan pengelolaan panas yang andal.',
+        }, profile: BP.Seiken },
+    ],
+  },
+
+  {
+    x: 23, y: 47, label: 'Water Pump', labelDir: 'left', icon: '💧',
+    brandVariants: [
+      { brand: 'GMB', brandLogo: '/images/brands/gmb.png', image: '/images/parts/wheel_bearing_gmb.png', model: '/models/water-pump.glb',
+        desc: {
+          en: 'The GMB water pump circulates coolant through the engine to control operating temperature and protect the cooling system under demanding driving conditions.',
+          id: 'Water pump GMB mengalirkan coolant ke seluruh mesin untuk mengontrol temperatur kerja dan melindungi sistem pendingin dalam kondisi berkendara yang berat.',
+        }, profile: BP.GMB },
+    ],
+  },
+
+  {
+    x: 26, y: 60, label: 'Ignition Coil', labelDir: 'left', icon: '⚡',
+    brandVariants: [
+      { brand: 'KJTRIC', brandLogo: '/images/brands/kjtric.png', model: '/models/ignition-coil.glb',
+        desc: {
+          en: 'The KJTRIC ignition coil delivers a strong, consistent spark for reliable engine starting, smooth combustion, and stable performance.',
+          id: 'Ignition coil KJTRIC menghasilkan percikan api yang kuat dan konsisten untuk menghidupkan mesin dengan andal, pembakaran halus, dan performa stabil.',
+        }, profile: {
+          ...BP.KJTRIC,
+          specifications: [
+            { icon: 'factory.png', en: 'Reliable ignition performance for Japanese vehicle applications', id: 'Performa pengapian andal untuk kendaraan Jepang' },
+            { icon: 'gear.png', en: 'Stable high-voltage output for consistent spark delivery', id: 'Output tegangan tinggi stabil untuk percikan yang konsisten' },
+            { icon: 'engineering.png', en: 'Engineered for heat and vibration resistance', id: 'Direkayasa tahan panas dan getaran' },
+          ],
+          productHighlights: [
+            { icon: 'gear.png', en: 'Ignition coil assemblies', id: 'Rakitan ignition coil' },
+            { icon: 'engineering.png', en: 'Consistent spark output', id: 'Output percikan konsisten' },
+            { icon: 'puzzle.png', en: 'OEM-compatible fitment', id: 'Kesesuaian kompatibel OEM' },
+          ],
+          specialization: {
+            icon: 'gear.png',
+            en: 'Ignition coils that convert battery voltage into the high-voltage spark required for efficient combustion and dependable engine operation.',
+            id: 'Ignition coil yang mengubah tegangan baterai menjadi percikan tegangan tinggi untuk pembakaran efisien dan operasi mesin yang andal.',
+          },
+        } },
+    ],
+  },
+
+  {
+    x: 29, y: 30, label: 'Oil Seals', labelDir: 'right', icon: '⭕',
+    brandVariants: [
+      { brand: 'NOK', brandLogo: '/images/brands/nok.png', image: '/images/parts/rack_steering.png', model: '/models/oil-seals.glb',
+        desc: {
+          en: 'NOK oil seals retain lubricants and keep contaminants out of rotating engine and drivetrain components, supporting long service life and reliable operation.',
+          id: 'Oil seal NOK menahan pelumas dan mencegah kontaminan masuk ke komponen mesin serta drivetrain yang berputar, mendukung masa pakai panjang dan operasi yang andal.',
+        }, profile: BP.NOK },
     ],
   },
 ]
@@ -1295,6 +1561,15 @@ const specifications = computed(() => currentVariant.value?.profile?.specificati
 
 const productHighlights = computed(() => currentVariant.value?.profile?.productHighlights || [])
 
+const advantagesList = computed(() => currentVariant.value?.profile?.advantages || [])
+
+const profilePoints = computed(() => {
+  const profile = currentVariant.value?.profile
+  if (!profile) return []
+  if (Array.isArray(profile.profile)) return profile.profile
+  return profile.specialization ? [profile.specialization] : []
+})
+
 const oemList = computed(() => {
   const oem = currentVariant.value?.profile?.oem
   if (!oem) return []
@@ -1304,7 +1579,9 @@ const oemList = computed(() => {
 const DEFAULT_VIDEO = { type: 'youtube', id: '7ciFbh99P9U' } 
 const BRAND_VIDEOS = {
   'Showa':           { type: 'youtube', id: 'D_3ZpJAX33A' },
-  'KJ':              { type: 'youtube', id: '7ciFbh99P9U' }, 
+  'KJ':              { type: 'youtube', id: '7ciFbh99P9U' },
+  'KJ Shock Absorber': { type: 'youtube', id: '7ciFbh99P9U' },
+  'KJ Steering':     { type: 'youtube', id: '7ciFbh99P9U' },
   'RBI':             { type: 'youtube', id: '7ciFbh99P9U' }, 
   'NOK':             { type: 'youtube', id: '7ciFbh99P9U' }, 
   'NSK':             { type: 'youtube', id: 'ZZuBGQMbvPY' },
@@ -1908,17 +2185,48 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     overflow: hidden;
   }
 
+  .rd-main--advantages {
+    display: block;
+    padding-right: 0;
+    overflow-y: auto;
+  }
+  .rd-main--advantages .rd-specs {
+    width: 100%;
+    max-width: none;
+    padding: 22px;
+  }
+  .rd-main--advantages .rd-specs-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .rd-main--advantages .rd-spec-item {
+    min-height: 92px;
+    align-items: flex-start;
+    padding: 16px;
+    border: 1px solid rgba(80,160,255,0.16);
+    border-radius: 12px;
+    background: rgba(10,18,32,0.52);
+  }
+  .rd-main--advantages .rd-spec-text {
+    padding-top: 2px;
+    display: block;
+    overflow: visible;
+    line-height: 1.55;
+  }
+
   .rd-stage { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-  .rd-features { width: 100%; margin-bottom: 10px; }
+  .rd-features { width: 100%; flex: 1; display: flex; flex-direction: column; justify-content: center; margin-bottom: 10px; }
   .rd-features-label {
-    display: block; text-align: center; font-family: var(--font-mono, monospace); font-size: 9.5px;
-    letter-spacing: .2em; color: rgba(150,195,255,.5); text-transform: uppercase; margin-bottom: 10px;
+    display: block; text-align: center; font-family: var(--font-mono, monospace); font-size: 11px;
+    letter-spacing: .2em; color: rgba(150,195,255,.7); text-transform: uppercase; margin-bottom: 22px;
   }
-  .rd-features-row { display: flex; align-items: flex-start; justify-content: center; gap: 6px; flex-wrap: wrap; }
-  .rd-feature { display: flex; flex-direction: column; align-items: center; gap: 9px; width: 180px; position: relative; }
+  .rd-features-row { display: flex; align-items: flex-start; justify-content: center; gap: 18px; flex-wrap: wrap; }
+  .rd-feature { display: flex; flex-direction: column; align-items: center; gap: 13px; width: 220px; position: relative; }
+  .rd-feature .rd-icon-slot--lg { width: 86px; height: 86px; border-radius: 22px; }
   .rd-feature-label {
-    font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: rgba(220,235,255,.85); text-align: center; text-transform: uppercase; line-height: 1.45;
+    font-size: 12px; font-weight: 700; letter-spacing: .03em; color: rgba(220,235,255,.92); text-align: center; text-transform: uppercase; line-height: 1.45;
     white-space: normal;
     overflow-wrap: break-word;
   }
@@ -2012,6 +2320,33 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .rd-icon-slot--oem { width: 48px; height: 48px; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.04); }
   .rd-icon-slot--oem img { width: 100%; height: 100%; object-fit: contain; }
 
+  .rd-profile-points {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .rd-profile-points li {
+    position: relative;
+    padding-left: 18px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: rgba(230,240,255,0.9);
+  }
+  .rd-profile-points li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #3399FF;
+    box-shadow: 0 0 8px rgba(51,153,255,.7);
+  }
+
   .rd-spec-block { display: flex; align-items: flex-start; gap: 13px; }
   .rd-spec-block .rd-icon-slot { width: 40px; height: 40px; }
   .rd-spec-block-text { margin: 0; padding-top: 6px; font-size: 13.5px; line-height: 1.6; color: rgba(230,240,255,0.9); }
@@ -2022,28 +2357,16 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .rd-timeline-dot { width: 9px; height: 9px; border-radius: 50%; background: #3399FF; box-shadow: 0 0 9px rgba(51,153,255,.7); position: relative; z-index: 1; }
   .rd-timeline-label { font-size: 10.5px; font-weight: 600; color: rgba(210,228,255,.85); text-align: center; line-height: 1.35; }
 
-  .rd-advantages {
+  .rd-nav {
     position: relative;
-    z-index: 3;
-    flex-shrink: 0; margin-bottom: 14px;
-    background: rgba(8,14,26,0.94); backdrop-filter: blur(10px);
-    border: 1px solid rgba(80,160,255,0.22); border-radius: 16px;
-    padding: 16px 18px 18px;
+    z-index: 6;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+    padding-top: 4px;
+    background: linear-gradient(180deg, transparent, rgba(5,7,13,.96) 35%);
   }
-  .rd-panel-title--boxed { margin-bottom: 14px; }
-  .rd-adv-row { display: flex; align-items: flex-start; }
-  .rd-adv-col {
-    flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 9px;
-    padding: 0 10px; position: relative;
-  }
-  .rd-adv-col:not(:last-child)::after {
-    content: ''; position: absolute; right: 0; top: 4px; bottom: 4px; width: 1px;
-    background: rgba(80,160,255,0.16);
-  }
-  .rd-icon-slot--adv { width: 46px; height: 46px; }
-  .rd-adv-label { font-size: 10.5px; font-weight: 700; letter-spacing: .02em; line-height: 1.4; color: #EAF3FF; text-align: center; text-transform: uppercase; }
-
-  .rd-nav { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
   .rd-nav-btn { min-height: 48px; font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: .1em; padding: 13px 16px; border-radius: 8px; flex-shrink: 0; border: 1px solid rgba(80,160,255,0.25); background: rgba(10,18,32,0.5); color: rgba(180,205,240,.75); transition: all .2s; touch-action: manipulation; }
   .rd-nav-btn:hover:not(:disabled) { background: rgba(0,119,255,0.14); border-color: #3399FF; color: #7FC0FF; }
   .rd-nav-btn:disabled { opacity: 0.28; }
@@ -2155,7 +2478,7 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     .canvas-area { left: 300px; }
     .chassis-img { max-width: 1180px; }
   }
-@media (max-width: 1200px) {
+  @media (max-width: 1200px) {
   .rd-main { flex-direction: column; align-items: stretch; padding-right: 0; }
   .rd-specs, .rd-profile {
     width: 100%;
@@ -2163,9 +2486,7 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     max-height: none;
     overflow-y: visible;
   }
-  .rd-adv-row { flex-wrap: wrap; gap: 14px 0; }
-  .rd-adv-col { flex: 1 1 30%; }
-  .rd-adv-col::after { display: none; }
+  .rd-main--advantages .rd-specs-list { grid-template-columns: 1fr; }
 }
   @media (max-width: 860px) {
     .left-sidebar { display: none; }
@@ -2173,13 +2494,12 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     .hud-tl, .hud-bl { left: 16px; }
     .topbar-center { display: none; }
     .rd-layout { padding: 18px; }
-    .rd-features { display: block; overflow: hidden; }
-    .rd-features-row { justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; padding: 2px 4px 8px; scrollbar-width: thin; }
-    .rd-feature { flex: 0 0 132px; width: 132px; gap: 6px; }
-    .rd-feature .rd-icon-slot--lg { width: 42px; height: 42px; border-radius: 12px; }
-    .rd-feature-label { font-size: 8px; line-height: 1.25; }
+    .rd-features { display: block; overflow: visible; }
+    .rd-features-row { justify-content: center; flex-wrap: wrap; overflow: visible; padding: 2px 4px 8px; }
+    .rd-feature { flex: 0 0 145px; width: 145px; gap: 8px; }
+    .rd-feature .rd-icon-slot--lg { width: 64px; height: 64px; border-radius: 16px; }
+    .rd-feature-label { font-size: 9px; line-height: 1.3; }
     .rd-feature-connector { display: none; }
-    .rd-adv-col { flex: 1 1 45%; }
     .rd-nav { flex-wrap: wrap; }
   }
   @media (max-width: 600px) {
@@ -2203,7 +2523,8 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     .rd-title { font-size: 21px; }
     .rd-main { gap: 12px; }
     .rd-specs, .rd-profile { padding: 12px; }
-    .rd-adv-col { flex: 1 1 100%; }
+    .rd-main--advantages .rd-specs { padding: 12px; }
+    .rd-main--advantages .rd-spec-item { min-height: 0; padding: 12px; }
     .rd-nav { gap: 6px; }
     .rd-nav-btn, .rd-nav-cta { min-height: 44px; padding: 10px 9px; font-size: 9px; }
     .video-widget { right: 8px; bottom: 48px; }
@@ -2226,7 +2547,7 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
       right: 0;
       bottom: auto;
       width: 100%;
-      height: 168px;
+      height: 204px;
       flex-direction: column;
       border-right: 0;
       border-bottom: 1px solid rgba(80,160,255,0.22);
@@ -2244,7 +2565,7 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     .sidebar-list {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      grid-template-rows: repeat(4, 30px);
+      grid-template-rows: repeat(5, 30px);
       grid-auto-flow: row;
       width: 100%;
       flex: 1;
@@ -2272,7 +2593,7 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     .sidebar-num { width: auto; padding-top: 0; font-size: 9px; }
     .sidebar-name { max-width: 100%; white-space: normal; font-size: 7px; line-height: 1.05; }
     .sidebar-brands { display: none; }
-    .canvas-area { inset: 226px 0 42px 0 !important; }
+    .canvas-area { inset: 262px 0 42px 0 !important; }
     .zoom-controls { right: 14px; top: auto; bottom: 54px; transform: none; flex-direction: row; padding: 6px; gap: 5px; }
     .zoom-track, .zoom-divider, .zoom-pct { display: none; }
     .zoom-btn { width: 42px; height: 42px; }
@@ -2409,20 +2730,10 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     }
     .rd-specs, .rd-profile { width: 100%; position: static; max-height: none; overflow: visible; padding: 12px; }
     .rd-features { margin-bottom: 0; }
-    .rd-features-row { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; padding-bottom: 4px; }
-    .rd-feature { flex: 0 0 112px; width: 112px; gap: 5px; }
-    .rd-feature .rd-icon-slot--lg { width: 38px; height: 38px; border-radius: 10px; }
-    .rd-feature-label { font-size: 7px; line-height: 1.2; }
-    .rd-advantages {
-      position: relative;
-      clear: both;
-      margin: 0 0 10px;
-      padding: 12px;
-      overflow: visible;
-    }
-    .rd-adv-row { flex-wrap: wrap; gap: 10px 0; }
-    .rd-adv-col { flex: 1 1 45%; padding: 0 5px; }
-    .rd-adv-label { font-size: 8px; }
+    .rd-features-row { flex-wrap: wrap; justify-content: center; gap: 18px 10px; overflow: visible; padding-bottom: 4px; }
+    .rd-feature { flex: 0 0 145px; width: 145px; gap: 8px; }
+    .rd-feature .rd-icon-slot--lg { width: 64px; height: 64px; border-radius: 16px; }
+    .rd-feature-label { font-size: 9px; line-height: 1.3; }
     .rd-nav { gap: 5px; }
     .rd-nav-btn, .rd-nav-cta { min-height: 42px; padding: 9px 8px; font-size: 8px; }
     .rd-main--brand + .rd-nav {
@@ -2448,22 +2759,15 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     .rd-specs-list { gap: 10px; }
     .rd-stage { justify-content: flex-start; }
     .rd-stage-visual { width: 100%; height: 220px; min-height: 220px; max-height: 220px; aspect-ratio: auto; }
-    .rd-advantages { padding: 10px 14px 12px; margin: 0 0 8px; }
-    .rd-panel-title--boxed { margin-bottom: 8px; }
-    .rd-icon-slot--adv { width: 36px; height: 36px; }
-    .rd-adv-col { gap: 6px; padding: 0 6px; }
-    .rd-adv-label { font-size: 9px; }
   }
   @media (max-height: 720px) and (min-width: 861px) {
     .rd-features { margin-bottom: 4px; }
-    .rd-features-label { margin-bottom: 4px; }
-    .rd-feature { width: 138px; }
-    .rd-feature .rd-icon-slot--lg { width: 42px; height: 42px; border-radius: 12px; }
+    .rd-features-label { margin-bottom: 12px; }
+    .rd-feature { width: 145px; }
+    .rd-feature .rd-icon-slot--lg { width: 64px; height: 64px; border-radius: 16px; }
     .rd-feature-label { font-size: 8px; line-height: 1.25; }
     .rd-feature-connector { display: none; }
     .rd-stage-visual { height: 180px; min-height: 180px; max-height: 180px; }
-    .rd-advantages { padding-top: 8px; padding-bottom: 8px; }
-    .rd-adv-col { gap: 4px; }
   }
   @media (min-width: 861px) and (max-height: 800px) {
     .rd-layout { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto auto; overflow-y: auto; }
@@ -2471,15 +2775,14 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
     .rd-specs { width: auto; max-height: 100%; overflow-y: auto; }
     .rd-stage { min-width: 0; min-height: 0; justify-content: flex-start; overflow: visible; }
     .rd-profile { position: static; width: auto; max-height: 100%; overflow-y: auto; }
-    .rd-features { transform: translateY(-78px); }
-    .rd-features-row { flex-wrap: nowrap; gap: 3px; }
+    .rd-features { transform: translateY(-24px); }
+    .rd-features-row { flex-wrap: nowrap; gap: 12px; }
     .rd-feature { width: auto; flex: 1 1 0; min-width: 0; }
     .rd-feature-label { font-size: 8px; }
-    .rd-feature .rd-icon-slot--lg { width: 42px; height: 42px; border-radius: 12px; }
+    .rd-feature .rd-icon-slot--lg { width: 64px; height: 64px; border-radius: 16px; }
     .rd-feature-connector { display: none; }
     .rd-stage-visual { flex: 1 1 auto; width: 100%; height: auto; min-height: 150px; max-height: 100%; aspect-ratio: auto; }
     .rd-stage-model { transform: translateY(-42px) scale(2.2); }
-    .rd-advantages { max-height: 116px; overflow-y: auto; }
   }
   @media (prefers-reduced-motion: reduce) {
     .bg-scan, .hs-pulse, .speed-line, .bg-radial, .img-halo, .cursor-svg,
