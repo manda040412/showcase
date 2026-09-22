@@ -1,5 +1,5 @@
 <template>
-  <div id="wrapper" :style="{ '--topbar-h': topbarHeight + 'px' }">
+  <div id="wrapper" :class="{ 'is-standby': screen === 'standby' }" :style="{ '--topbar-h': 'calc(' + topbarHeight + ' * var(--ui-unit))' }">
 
     <LangToggle />
 
@@ -71,17 +71,24 @@ function goToChassis() {
 </script>
 
 <style scoped>
+/* Shared design scale: desktop 1920 x 1080, portrait kiosk 540 x 960. */
 #wrapper {
-  width: min(100vw, calc(100vh * 61 / 106.5));
-  height: min(100vh, calc(100vw * 106.5 / 61));
-  aspect-ratio: 61 / 106.5;
+  --ui-unit: min(0.0520833333vw, 0.0925925926dvh);
+  width: 100%;
+  height: 100%;
   position: relative;
   overflow: hidden;
   background: #03060E;
+  container-type: size;
 }
-
+@media (max-width: 900px) and (orientation: landscape) {
+  #wrapper { --ui-unit: min(0.1111111111vw, 0.1666666667dvh); }
+}
 @media (orientation: portrait) {
-  #wrapper { --topbar-h: 58px !important; }
+  #wrapper {
+    --ui-unit: min(0.1851851852vw, 0.1041666667dvh);
+    --topbar-h: calc(58 * var(--ui-unit)) !important;
+  }
 }
 
 .transition-flash {

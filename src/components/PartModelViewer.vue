@@ -307,14 +307,14 @@ onUnmounted(() => {
 .part-model-viewer:active { cursor: grabbing; }
 canvas { display: block; width: 100%; height: 100%; }
 .pmv-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-.pmv-spinner { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(80,160,255,0.25); border-top-color: #3399FF; animation: pmv-spin 0.8s linear infinite; }
+.pmv-spinner { width: calc(var(--ui-unit) * 22); height: calc(var(--ui-unit) * 22); border-radius: 50%; border: calc(var(--ui-unit) * 2) solid rgba(80,160,255,0.25); border-top-color: #3399FF; animation: pmv-spin 0.8s linear infinite; }
 @keyframes pmv-spin { to { transform: rotate(360deg); } }
 
 @media (orientation: portrait) {
   .pmv-spinner {
-    width: 18px;
-    height: 18px;
-    border-width: 1.5px;
+    width: calc(var(--ui-unit) * 18);
+    height: calc(var(--ui-unit) * 18);
+    border-width: calc(var(--ui-unit) * 1.5);
   }
 }
 </style> 
