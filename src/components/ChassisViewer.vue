@@ -191,22 +191,23 @@
                 </div>
               </div>
 
-              <div class="rd-header">
+              <div class="rd-header" :class="{ 'rd-header--brand': currentHs.brandOnly }">
                 <span class="rd-index">{{ displayNumber(activeHs) }}</span>
+                <img v-if="currentHs.brandOnly && currentVariant.brandLogo" :src="currentVariant.brandLogo" :alt="currentVariant.brand" class="catalog-brand-logo" />
                 <div class="rd-header-text">
                   <span class="rd-eyebrow">{{ currentHs.brandOnly ? 'BRAND' : t('suspension_component') }}</span>
                   <h2 class="rd-title">{{ currentHs.label }}</h2>
-                  <img v-if="currentHs.brandOnly && currentVariant.brandLogo" :src="currentVariant.brandLogo" :alt="currentVariant.brand" class="catalog-brand-logo" />
+                  
                 </div>
               </div>
 
-              <div class="rd-tabs" role="tablist" aria-label="Part information">
+              <div v-if="availableTabs.length" class="rd-tabs" role="tablist" aria-label="Part information">
                 <button v-if="specifications.length" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'specs' }" @click="popupTab = 'specs'">SPESIFIKASI</button>
-                <button v-if="currentVariant.profile" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'brand' }" @click="popupTab = 'brand'">PROFIL MEREK</button>
+                <button v-if="availableTabs.includes('brand')" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'brand' }" @click="popupTab = 'brand'">PROFIL MEREK</button>
                 <button v-if="advantagesList.length" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'advantages' }" @click="popupTab = 'advantages'">KEUNGGULAN</button>
                 <button v-if="productHighlights.length" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'highlights' }" @click="popupTab = 'highlights'">HIGHLIGHT</button>
-                <button class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'products' }" @click="popupTab = 'products'">{{ bl({ id: 'PRODUK MEREK', en: 'BRAND PRODUCTS' }) }}</button>
-                <button v-if="currentVariant.model || currentVariant.image" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'model' }" @click="popupTab = 'model'">3D MODEL</button>
+                <button v-if="brandProducts.length" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'products' }" @click="popupTab = 'products'">{{ bl({ id: 'PRODUK MEREK', en: 'BRAND PRODUCTS' }) }}</button>
+                <button v-if="!currentHs.brandOnly && (currentVariant.model || currentVariant.image)" class="rd-tab" :class="{ 'rd-tab--active': popupTab === 'model' }" @click="popupTab = 'model'">3D MODEL</button>
               </div>
 
               <div class="rd-main" :class="{
@@ -217,6 +218,7 @@
                 'rd-main--advantages': popupTab === 'advantages'
               }">
 
+                <p v-if="!availableTabs.length">{{ t('no_data_yet') }}</p>
                 <div class="rd-specs" v-if="popupTab === 'specs' && specifications.length">
                   <span class="rd-panel-title">{{ bl({ en: 'Specifications', id: 'Spesifikasi' }) }}</span>
                   <div class="rd-specs-list">
@@ -241,6 +243,7 @@
 
                 <section v-if="popupTab === 'products'" class="rd-products">
                   <h3 class="rd-panel-title">{{ currentVariant.brand }} ? {{ bl({ id: 'Varian Produk', en: 'Product Range' }) }}</h3>
+                  <p v-if="!brandProducts.length">{{ t('no_data_yet') }}</p>
                   <div class="rd-products-grid">
                     <component :is="product.index !== undefined ? 'button' : 'div'" v-for="(product, productIndex) in brandProducts" :key="product.label" class="rd-product" :class="{ 'rd-product--catalog': product.index === undefined }" @click="openBrandProduct(product)">
                       <span class="rd-product-number">{{ String(productIndex + 1).padStart(2, '0') }}</span>
@@ -264,7 +267,7 @@
                     </div>
                   </div>
 
-                  <div v-if="popupTab === 'model'" class="rd-stage-visual">
+                  <div v-if="popupTab === 'model'" class="rd-stage-visual" :class="{ 'rd-stage-visual--brand': currentHs.brandOnly }">
 
                     <Transition name="hero-swap" mode="out-in">
                       <PartModelViewer
@@ -451,7 +454,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { t, lang } from '../composables/useLang.js'
 import PartModelViewer from './PartModelViewer.vue'
-import { brandProductCatalog } from '../data/brandProducts.js'
+import { referenceBrandProfiles } from '../data/referenceBrandProfiles.js'
+import { partListBrands, brandProductCatalog, additionalBrandDetails } from '../data/brandProducts.js'
 
 defineEmits(['back', 'exterior'])
 
@@ -851,42 +855,6 @@ const BP = {
     ],
   },
 
-  'NOK-steering': {
-    founded: '1941',
-    country: { en: 'Japan', id: 'Jepang' },
-    hq: 'Tokyo, Japan',
-    oem: 'Toyota, Honda, Mitsubishi, Nissan, Mazda, Suzuki, Isuzu, Lexus',
-    specifications: [
-      { icon: 'gear.png', en: 'Rack seals and power steering fluid seals used as OE', id: 'Rack seal dan power steering fluid seal digunakan sebagai OE' },
-      { icon: 'engineering.png', en: 'Withstands continuous hydraulic pressure and thermal cycling', id: 'Tahan tekanan hidrolik berkelanjutan dan siklus termal' },
-      { icon: 'factory.png', en: "Part of NOK's 60+ facility global sealing operation", id: 'Bagian dari operasi penyegelan global NOK di 60+ fasilitas' },
-      { icon: 'car.png', en: 'Enables cost-effective rack rebuilds', id: 'Memungkinkan rebuild rack hemat biaya' },
-    ],
-    productHighlights: [
-      { icon: 'gear.png', en: 'Rack seals', id: 'Rack seal' },
-      { icon: 'engineering.png', en: 'Power steering fluid seals', id: 'Power steering fluid seal' },
-      { icon: 'puzzle.png', en: 'Rack rebuild seal kits', id: 'Kit segel rebuild rack' },
-    ],
-    specialization: {
-      icon: 'gear.png',
-      en: 'Rack seals and power steering fluid seals resistant to hydraulic pressure, thermal cycling, and fluid exposure, enabling cost-effective rack rebuilding.',
-      id: 'Rack seal dan power steering fluid seal tahan tekanan hidrolik, siklus termal, dan paparan cairan, memungkinkan rebuild rack yang hemat biaya.',
-    },
-    historyHighlight: [
-      { en: '1939 NOK established', id: '1939 NOK didirikan' },
-      { en: '60+ global sealing facilities', id: '60+ fasilitas penyegelan global' },
-      { en: 'Present Day', id: 'Present Day' },
-    ],
-    advantages: [
-      { icon: 'car.png', en: 'Tier-1 OEM sealing supplier to Toyota, Honda, Nissan, Mitsubishi, and Isuzu', id: 'Pemasok segel OEM Tier-1 untuk Toyota, Honda, Nissan, Mitsubishi, dan Isuzu' },
-      { icon: 'gear.png', en: 'Hydraulic seals maintain correct power steering pressure throughout service life', id: 'Segel hidrolik mempertahankan tekanan power steering yang tepat sepanjang masa pakai' },
-      { icon: 'engineering.png', en: 'Advanced polymer compounds resist power steering fluid degradation', id: 'Kompon polimer canggih menahan degradasi cairan power steering' },
-      { icon: 'factory.png', en: 'Thermal and pressure cycling resistance prevents premature seal failure', id: 'Ketahanan siklus termal dan tekanan mencegah kegagalan segel dini' },
-      { icon: 'puzzle.png', en: 'Enables cost-effective rack rebuilding as an alternative to full assembly replacement', id: 'Memungkinkan rebuild rack yang hemat biaya sebagai alternatif penggantian rakitan penuh' },
-      { icon: 'engineering.png', en: 'Over 85 years of specialized hydraulic and pneumatic sealing expertise', id: 'Lebih dari 85 tahun keahlian penyegelan hidrolik dan pneumatik khusus' },
-    ],
-  },
-
   Seiken: {
     founded: '1959',
     country: { en: 'Japan', id: 'Jepang' },
@@ -929,7 +897,7 @@ const BP = {
       { icon: 'factory.png', en: 'Compact International (1994) Co., Ltd., based in Bangkok', id: 'Compact International (1994) Co., Ltd., berbasis di Bangkok' },
       { icon: 'gear.png', en: 'Full verified range: pads, shoes, lining, rotors, fluid, shims', id: 'Rangkaian lengkap terverifikasi: kampas, sepatu rem, lining, rotor, cairan rem, shim' },
       { icon: 'engineering.png', en: 'Heat-resistant friction compounds for cars, pickups, and vans', id: 'Kompon gesek tahan panas untuk mobil, pickup, dan van' },
-      { icon: 'car.png', en: 'Cost-effective without compromising safety standards', id: 'Hemat biaya tanpa mengorbankan standar keselamatan' },
+      { icon: 'car.png', en: 'Cost-effective without compromising safety standards', id: 'Hemat biaya tanpa mengorbankan standar keselamatan' }, 
     ],
     productHighlights: [
       { icon: 'gear.png', en: 'Disc brake pads', id: 'Kampas rem disc brake' },
@@ -1098,7 +1066,7 @@ Object.assign(BP.KJ, {
     { icon: 'price.png', en: 'Value for money', id: 'Harga sepadan' },
     { icon: 'reliable.png', en: 'Reliable damping performance', id: 'Performa peredaman andal' },
     { icon: 'comfort.png', en: 'Comfort ride', id: 'Kenyamanan berkendara' },
-  ],
+  ], 
 })
 BP.KJLEX = {
   founded: null,
@@ -1310,6 +1278,9 @@ BP.KJLEX.advantages = [
   { icon: 'global.png', en: 'Wide fitment range for Japanese and Asian car models', id: 'Cakupan kesesuaian luas untuk model mobil Jepang dan Asia' },
   { icon: 'precision.png', en: 'OEM-compatible product quality for maximum performance and easy installation', id: 'Kualitas produk kompatibel OEM untuk performa maksimal dan pemasangan mudah' },
 ]
+
+// Apply the supplied reference sheets before linking products.
+Object.assign(BP, referenceBrandProfiles)
 
 const originalTrustBrands = ['SHOWA', 'KJ', '555', 'RBI', 'NOK', 'SEIKEN', 'COMPACT BRAKES', 'NSK', 'GMB', 'KJTRIC']
 const trustBrands = [...new Set([...originalTrustBrands, ...Object.keys(brandProductCatalog).map(brand => brand.toUpperCase())])]
@@ -1570,13 +1541,21 @@ const hotspots = [
   },
 ]
 
-// Brands without a physical showcase part remain accessible as catalog entries.
-for (const brand of Object.keys(brandProductCatalog)) {
-  if (!hotspots.some(part => part.brandVariants.some(variant => variant.brand === brand))) {
-    hotspots.push({ label: brand, brandOnly: true, brandVariants: [{ brand }], icon: '' })
-  }
+// Only brands without a showcase product need a separate Part List entry.
+for (const brand of partListBrands) {
+  if (hotspots.some(part => part.brandVariants.some(variant => variant.brand === brand))) continue
+  const details = additionalBrandDetails[brand]
+  const products = brandProductCatalog[brand] || []
+  const profile = referenceBrandProfiles[brand] || (details?.description ? {
+    profile: [details.description],
+    specifications: [],
+    productHighlights: [],
+    advantages: details.advantages || [],
+  } : undefined)
+  hotspots.push({ label: brand, brandOnly: true, brandVariants: [{
+    brand, brandLogo: details?.brandLogo, profile,
+  }], icon: '' })
 }
-
 // Keep physical hotspots intact; the catalog lists each product type once.
 const uniqueParts = computed(() => {
   const seen = new Set()
@@ -1620,6 +1599,22 @@ function openBrandProduct(product) {
 // Computed helpers
 const currentHs = computed(() => activeHs.value !== null ? hotspots[activeHs.value] : null)
 const currentVariant = computed(() => currentHs.value ? currentHs.value.brandVariants[activeBrand.value] : null)
+
+function tabsFor(part, variant) {
+  if (!part || !variant) return []
+  const profile = variant.profile
+  const tabs = []
+  if (profile?.specifications?.length) tabs.push('specs')
+  if (profile && (profile.founded || profile.country || profile.hq || profile.oem ||
+      profile.profile?.length || profile.specialization || profile.historyHighlight?.length)) tabs.push('brand')
+  if (profile?.advantages?.length) tabs.push('advantages')
+  if (profile?.productHighlights?.length) tabs.push('highlights')
+  if (brandProductCatalog[variant.brand]?.length ||
+      uniqueParts.value.some(p => !p.brandOnly && p.brandVariants.some(v => v.brand === variant.brand))) tabs.push('products')
+  if (!part.brandOnly && (variant.model || variant.image)) tabs.push('model')
+  return tabs
+}
+const availableTabs = computed(() => tabsFor(currentHs.value, currentVariant.value))
 
 const specifications = computed(() => currentVariant.value?.profile?.specifications || [])
 
@@ -1728,8 +1723,8 @@ function openPopup(i) {
   if (!hs.brandVariants || hs.brandVariants.length === 0) return
   videoExpanded.value = false
   activeBrand.value = 0
-  if (hs.brandOnly) { activeHs.value = i; popupTab.value = 'products'; return }
-  popupTab.value = hs.brandVariants[0].profile?.specifications?.length ? 'specs' : 'products'
+  if (hs.brandOnly) { activeHs.value = i; popupTab.value = tabsFor(hs, hs.brandVariants[0])[0] || ''; return }
+  popupTab.value = tabsFor(hs, hs.brandVariants[0])[0] || ''
   const img = imgRef.value
   if (!img) { activeHs.value = i; return }
   const imgW = img.clientWidth, imgH = img.clientHeight
@@ -1750,11 +1745,7 @@ function nextPart() {
 function resetView()   { scale.value = portraitBaseScale; panX.value = 0; panY.value = 0 }
 function switchBrand(i) {
   activeBrand.value = i
-  const profile = currentVariant.value?.profile
-  if ((popupTab.value === 'specs' && !profile?.specifications?.length) ||
-      (popupTab.value === 'brand' && !profile) ||
-      (popupTab.value === 'advantages' && !profile?.advantages?.length) ||
-      (popupTab.value === 'highlights' && !profile?.productHighlights?.length)) popupTab.value = 'products'
+  if (!availableTabs.value.includes(popupTab.value)) popupTab.value = availableTabs.value[0] || ''
 }
 
 function onWheel(e) {
@@ -2952,5 +2943,18 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   .canvas-area { top: calc(378 * var(--ui-unit)) !important; }
   .part-choice-overlay { top: calc(378 * var(--ui-unit)); }
 }
+
+.catalog-brand-logo { padding: calc(8 * var(--ui-unit)); background: white; border-radius: calc(6 * var(--ui-unit)); }
+.rd-main--model .rd-stage-visual--brand > img { width: 80%; height: auto; max-height: 80%; padding: calc(24 * var(--ui-unit)); background: white; border-radius: calc(12 * var(--ui-unit)); animation: none; filter: none; }
+
+.rd-header.rd-header--brand {
+  align-items: center; gap: calc(12 * var(--ui-unit)); padding-right: calc(48 * var(--ui-unit));
+}
+.rd-header--brand .catalog-brand-logo {
+  width: calc(72 * var(--ui-unit)); height: calc(54 * var(--ui-unit));
+  flex-shrink: 0; object-fit: contain;
+}
+.rd-header--brand .rd-header-text { min-width: 0; padding-top: 0; }
+.rd-header--brand .rd-title { overflow-wrap: anywhere; }
 </style>
  
