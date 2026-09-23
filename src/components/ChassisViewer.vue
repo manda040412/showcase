@@ -359,7 +359,7 @@
                 </Transition>
               </div>
 
-          <div v-if="!currentHs.brandOnly" class="video-widget" :class="{ 'video-widget--open': videoExpanded }">
+          <div v-if="!currentHs.brandOnly && currentVideoConfig" class="video-widget" :class="{ 'video-widget--open': videoExpanded }">
 
             <button v-if="!videoExpanded" class="vw-fab" @click="videoExpanded = true">
               <span class="vw-fab-ring"></span>
@@ -385,7 +385,6 @@
                   <span class="vw-video-corner vw-video-corner-tl"></span>
                   <span class="vw-video-corner vw-video-corner-br"></span>
                   <iframe
-                    v-if="currentVideoConfig.type === 'youtube'"
                     class="vw-iframe"
                     :key="currentVideoKey"
                     :src="currentVideoUrl"
@@ -395,16 +394,6 @@
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowfullscreen
                   ></iframe>
-                  <video
-                    v-else
-                    class="vw-iframe" 
-                    :src="currentVideoConfig.src"
-                    autoplay
-                    muted
-                    loop
-                    playsinline
-                    controls
-                  ></video>
                 </div>
                 <div class="vw-trust-marquee">
                   <div class="vw-trust-track">
@@ -1635,33 +1624,38 @@ const oemList = computed(() => {
   return oem.split(',').map(s => s.trim()).filter(Boolean).slice(0, 8)
 })
 
-const DEFAULT_VIDEO = { type: 'youtube', id: '7ciFbh99P9U' } 
+// TRAD and KJ brands share the same company profile.
 const BRAND_VIDEOS = {
-  'Showa':           { type: 'youtube', id: 'D_3ZpJAX33A' },
-  'KJ':              { type: 'youtube', id: '7ciFbh99P9U' },
-  'KJ Shock Absorber': { type: 'youtube', id: '7ciFbh99P9U' },
-  'KJ Steering':     { type: 'youtube', id: '7ciFbh99P9U' },
-  'RBI':             { type: 'youtube', id: '7ciFbh99P9U' }, 
-  'NOK':             { type: 'youtube', id: '7ciFbh99P9U' }, 
-  'NSK':             { type: 'youtube', id: 'ZZuBGQMbvPY' },
-  'GMB':             { type: 'youtube', id: 'rFBkQmhtRjM' },
-  'KJTRIC':          { type: 'youtube', id: '7ciFbh99P9U' }, 
-  '555': { type: 'local', src: '/videos/555 Factory.mp4' },
-  'Compact Brakes': { type: 'youtube', id: 'l8zUNcN-T5k' },
-  'Seiken': { type: 'local', src: '/videos/SEIKEN 1.mp4' },
+  'TRAD': { id: '_-wA138wzyw' },
+  'KJ': { id: '_-wA138wzyw' },
+  'KJLEX': { id: '_-wA138wzyw' },
+  'KJTRIC': { id: '_-wA138wzyw' },
+  'KJ Hydraulics': { id: '_-wA138wzyw' },
+  'KJ Shock Absorber': { id: '_-wA138wzyw' },
+  'KJ Steering': { id: '_-wA138wzyw' },
+  '3K Battery': { id: 'ynEjB_RaZbI' },
+  'Compact Brakes': { id: 'XuhpXVFg5d0' },
+  'Mitsuboshi': { id: 'yi8vAKEzbQg' },
+  'NOK': { id: 'pQOYeRFM-WI' },
+  'NSK': { id: 'HcZHvag0fb8' },
+  'NWB': { id: 'lUWcNXnvRX4' },
+  'RBI': { id: 'X9PXImrG6BA' },
+  'Seiken': { id: '0qZLHMDfVpY' },
+  'NKN': { id: 'IzbF3JnbSHs' },
+  'Showa': { id: 'D_3ZpJAX33A' },
+  'GMB': { id: 'rFBkQmhtRjM' },
+  '555': { id: 'B_tWUD5UQxc' },
+  // New-Era: awaiting company-profile YouTube link.
 }
-const currentVideoConfig = computed(() => BRAND_VIDEOS[currentVariant.value?.brand] || DEFAULT_VIDEO)
+const currentVideoConfig = computed(() => BRAND_VIDEOS[currentVariant.value?.brand] || null)
 const currentVideoUrl = computed(() => {
-  const v = currentVideoConfig.value
-  return v.type === 'youtube'
-    ? `https://www.youtube.com/embed/${v.id}?autoplay=1&origin=${encodeURIComponent(window.location.origin)}`
+  const video = currentVideoConfig.value
+  return video
+    ? `https://www.youtube.com/embed/${video.id}?autoplay=1&origin=${encodeURIComponent(window.location.origin)}`
     : ''
 })
+const currentVideoKey = computed(() => currentVideoConfig.value?.id)
 
-const currentVideoKey = computed(() => {
-  const v = currentVideoConfig.value
-  return v.type === 'youtube' ? v.id : v.src
-})
 function shortLabel(field, max = 24) {
   const s = bl(field) || ''
   return s.length > max ? s.slice(0, max - 1).trimEnd() + '…' : s
