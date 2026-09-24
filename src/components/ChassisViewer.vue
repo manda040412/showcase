@@ -359,7 +359,7 @@
                 </Transition>
               </div>
 
-          <div v-if="!currentHs.brandOnly && currentVideoConfig" class="video-widget" :class="{ 'video-widget--open': videoExpanded }">
+          <div v-if="currentVideoConfig" class="video-widget" :class="{ 'video-widget--open': videoExpanded }">
 
             <button v-if="!videoExpanded" class="vw-fab" @click="videoExpanded = true">
               <span class="vw-fab-ring"></span>
@@ -378,7 +378,7 @@
                 </span>
                 <span class="vw-label">{{ currentVariant?.brand ? currentVariant.brand + ' · ' : '' }}{{ t('company_profile') }}</span>
                 <span class="vw-stats">{{ uniqueParts.length }} {{ t('stat_parts') }} · {{ trustBrands.length }} {{ t('stat_brands') }}</span>
-                <button class="vw-close-btn" @click="videoExpanded = false">✕</button>
+                <button class="vw-close-btn" type="button" :aria-label="bl({ en: 'Close video', id: 'Tutup video' })" @click="videoExpanded = false">✕</button>
               </div>
               <div class="video-widget-body">
                 <div class="vw-video-wrap">
@@ -1386,7 +1386,7 @@ const hotspots = [
         desc: {
           en: 'KJ Steering rack assemblies provide a reliable replacement solution with fitment-focused engineering for popular Japanese vehicle applications.',
           id: 'Rack steering assy KJ Steering memberikan solusi pengganti yang andal dengan rekayasa yang berfokus pada kecocokan untuk kendaraan Jepang populer.',
-        }, profile: BP.KJ },
+        }, profile: BP['KJ Steering'] },
     ],
   },
 
@@ -1497,24 +1497,7 @@ const hotspots = [
         desc: {
           en: 'The KJTRIC ignition coil delivers a strong, consistent spark for reliable engine starting, smooth combustion, and stable performance.',
           id: 'Ignition coil KJTRIC menghasilkan percikan api yang kuat dan konsisten untuk menghidupkan mesin dengan andal, pembakaran halus, dan performa stabil.',
-        }, profile: {
-          ...BP.KJTRIC,
-          specifications: [
-            { icon: 'factory.png', en: 'Reliable ignition performance for Japanese vehicle applications', id: 'Performa pengapian andal untuk kendaraan Jepang' },
-            { icon: 'gear.png', en: 'Stable high-voltage output for consistent spark delivery', id: 'Output tegangan tinggi stabil untuk percikan yang konsisten' },
-            { icon: 'engineering.png', en: 'Engineered for heat and vibration resistance', id: 'Direkayasa tahan panas dan getaran' },
-          ],
-          productHighlights: [
-            { icon: 'gear.png', en: 'Ignition coil assemblies', id: 'Rakitan ignition coil' },
-            { icon: 'engineering.png', en: 'Consistent spark output', id: 'Output percikan konsisten' },
-            { icon: 'puzzle.png', en: 'OEM-compatible fitment', id: 'Kesesuaian kompatibel OEM' },
-          ],
-          specialization: {
-            icon: 'gear.png',
-            en: 'Ignition coils that convert battery voltage into the high-voltage spark required for efficient combustion and dependable engine operation.',
-            id: 'Ignition coil yang mengubah tegangan baterai menjadi percikan tegangan tinggi untuk pembakaran efisien dan operasi mesin yang andal.',
-          },
-        } },
+        }, profile: BP.KJTRIC },
     ],
   },
 
@@ -2895,7 +2878,7 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
   position: relative; inset: auto; display: flex; justify-content: flex-end;
   flex: 0 0 auto; width: 100%; margin: calc(var(--ui-unit) * 10) 0;
 }
-.rd-layout .video-widget-card { max-width: 100%; max-height: 32dvh; overflow-y: auto; }
+.rd-layout .video-widget-card { max-width: 100%; }
 .rd-main.rd-main--model {
   display: flex; flex: 1 0 calc(var(--ui-unit) * 340);
   min-height: calc(var(--ui-unit) * 340); padding: 0; overflow: hidden;
@@ -2950,5 +2933,40 @@ onUnmounted(() => { window.removeEventListener('mousemove', updateCursor); if (r
 }
 .rd-header--brand .rd-header-text { min-width: 0; padding-top: 0; }
 .rd-header--brand .rd-title { overflow-wrap: anywhere; }
+
+/* Fit advantage cards to the available panel width, including portrait kiosks. */
+.rd-main--advantages .rd-specs-list {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(240px, calc(var(--ui-unit) * 280))), 1fr));
+}
+.rd-main--advantages .rd-spec-item { min-width: 0; }
+.rd-main--advantages .rd-spec-text { min-width: 0; overflow-wrap: anywhere; }
+.rd-main--advantages .rd-spec-item .rd-icon-slot { flex-shrink: 0; }
+@media (orientation: portrait), (max-width: 600px) {
+  .rd-main.rd-main--advantages { flex: 0 0 auto; overflow: visible; }
+  .rd-main--advantages .rd-specs-list { grid-template-columns: minmax(0, 1fr); }
+  .rd-main--advantages .rd-spec-item { min-height: 0; }
+}
+
+/* Preserve the full video frame; the outer detail panel handles scrolling. */
+.rd-layout .video-widget-card {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, max(300px, calc(var(--ui-unit) * 380)));
+  max-height: none;
+  overflow: hidden;
+}
+.vw-card-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 44px;
+  flex: 0 0 auto;
+  gap: 8px;
+  padding: 10px;
+}
+.vw-label { min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
+.vw-card-header .vw-stats { display: none; }
+.vw-card-header .vw-close-btn { width: 44px; height: 44px; min-width: 44px; }
+.vw-close-btn:focus-visible { outline: 2px solid #58aeff; outline-offset: 2px; }
+.video-widget-body { flex: 0 0 auto; min-height: 0; overflow: visible; }
+.vw-video-wrap { aspect-ratio: 16 / 9; padding-top: 0; }
 </style>
  

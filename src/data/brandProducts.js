@@ -5,7 +5,7 @@ export const partListBrands = ['NWB', 'NOK', '555', 'GMB', 'Seiken', '3K Battery
 export const brandProductCatalog = {
   // Keep brands visible while their product lists are unavailable.
   "3K Battery": [],
-  "KJLEX": [],
+  "KJLEX": ["Accelerator Cable", "Clutch Cable", "Engine Stop Cable", "Transmission Cable", "Hand Brake Cable"],
   "KJ Hydraulics": [],
   "555": [
     "Ball Joints",
